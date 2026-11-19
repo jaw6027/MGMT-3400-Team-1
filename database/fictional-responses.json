@@ -1,0 +1,5 @@
+[
+  {"age":"18–24","stage":"Student","location":"Local resident","frequency":"About once a week","likelihood":"Very likely","budget":"Under $20","selections":{"desired_feature":["Free and low-cost activity filters","Sharing plans with friends"],"activity_interest":["Concerts and nightlife"]}},
+  {"age":"25–34","stage":"Working","location":"Visitor","frequency":"A few times a month","likelihood":"Somewhat likely","budget":"$20–$39","selections":{"desired_feature":["Nearby activities or a map"],"activity_interest":["Restaurants and food","Outdoor activities"]}},
+  {"age":"35–44","stage":"Working","location":"Local resident","likelihood":"Neither likely nor unlikely","selections":{"desired_feature":["Clear age restrictions and accessibility information"],"activity_interest":["Family-friendly outings"]}}
+]

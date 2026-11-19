@@ -1,5 +1,7 @@
 # Alpas
 
+Customer research tools: see [the SQLite database guide](database/README.md) for anonymous survey storage, demographic reports, and browser-demo imports. These tools run locally and do not change the app's browser-only storage.
+
 Find your kind of fun, wherever you are. Alpas helps travelers and locals discover activities, compare estimated prices, follow official venue links, and keep ideas together in a saved plan.
 
 ## Run locally

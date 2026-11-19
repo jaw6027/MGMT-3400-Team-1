@@ -4,6 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "db:init": "node database/manage.js init",
+    "db:test": "node --test database/*.test.js",
+    "db:demo": "node database/manage.js demo",
+    "db:import": "node database/manage.js import",
+    "db:survey": "node database/manage.js survey",
+    "db:report": "node database/manage.js report",
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
