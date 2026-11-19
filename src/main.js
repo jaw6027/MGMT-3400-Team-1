@@ -1,4 +1,5 @@
 import "./style.css";
+import { setupAudience } from "./audience-ui.js";
 import {
   createSubmission,
   readSubmissions,
@@ -104,7 +105,7 @@ document.querySelector("#app").innerHTML = `
     </section>
     <section class="bottom-banner"><div class="banner-flower" aria-hidden="true">✳︎</div><div><h2>Your next good memory is out there.</h2><p>Save a few favorites. Leave a little room for the unexpected.</p></div><button id="banner-plans">Make a little plan ${icon("arrow")}</button></section>
   </main>
-  <footer><a class="brand footer-brand" href="#" aria-label="Alpas home">${logo}</a><p>A little discovery. A lot of possibility.</p><span>Made for going places. © ${new Date().getFullYear()} Alpas</span></footer>
+  <footer><a class="brand footer-brand" href="#" aria-label="Alpas home">${logo}</a><p>A little discovery. A lot of possibility.</p><button class="text-button" id="audience-nav">Audience insights</button><span>Made for going places. © ${new Date().getFullYear()} Alpas</span></footer>
   <dialog id="details-dialog" aria-labelledby="dialog-title"><button class="dialog-close icon-button" aria-label="Close dialog">${icon("close")}</button><div id="dialog-content"></div></dialog>
 `;
 
@@ -335,6 +336,7 @@ document
     ),
   );
 const dialog = document.querySelector("#details-dialog");
+setupAudience(openDialog);
 document
   .querySelector(".dialog-close")
   .addEventListener("click", () => dialog.close());

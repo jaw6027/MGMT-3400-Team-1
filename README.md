@@ -25,7 +25,13 @@ Vite listens on port 5173 by default. The app uses vanilla JavaScript, CSS, and 
 - Estimated per-person plan total and responsive layouts
 - Keyboard-accessible modal dialogs and announced result counts
 
-## Data limits
+## Audience insights demo
+
+Choose **Audience insights** in the footer for an optional survey and response dashboard. Broad age ranges, life stage, and local/visitor status are stored under `alpas-audience-responses` in this browser only. No answers are sent to a server; names, dates of birth, emails, and precise locations are not requested. Each question offers Prefer not to say; closing the dialog skips the survey. At least one answer is needed to add a response. The dashboard shows counts and percentages for each category, including undisclosed answers in the denominator, with no automatic tracking.
+
+Each submission counts as a response, including repeat submissions. Results measure this browser's voluntary demo responses, not unique users or app-wide popularity. There is no seeded audience data. Use **Delete demo responses** to remove the survey data without deleting plans or organizer events. Up to 1,000 responses are supported; storage failures keep answers available for retry. Shared analytics would require a backend and a separate implementation.
+
+## Listing data limits
 
 This is an initial prototype using **sample listings and estimated USD prices**, not live events, availability, or verified current pricing. Links lead to official websites for confirmation and booking. Opening hours, age policies, reservations, and extra purchases can vary. Saves are local to one browser; there is no account, server, payment flow, or cloud synchronization.
 
