@@ -1415,3 +1415,189 @@ body:has(dialog[open]) {
     transform: none !important;
   }
 }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.organizer-trigger {
+  border: 1px solid #d5dacb;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.category-list {
+  min-width: 0;
+}
+.season-note {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #6c7b65;
+  margin: 0 0 16px;
+  min-height: 30px;
+}
+.season-note .icon {
+  width: 13px;
+  height: 13px;
+  margin-top: 1px;
+}
+.price .unknown-price {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+.availability-note,
+.submission-note {
+  font-size: 12px;
+  line-height: 1.7;
+  background: #edf0e4;
+  border-radius: 6px;
+  padding: 12px 14px;
+  color: #4b604c;
+}
+.availability-note strong {
+  display: block;
+  margin-bottom: 3px;
+}
+.description {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.card h3,
+.venue {
+  overflow-wrap: anywhere;
+}
+#plan-summary span:last-child {
+  flex-wrap: wrap;
+}
+#plan-summary small {
+  font-size: 11px;
+}
+.organizer-body {
+  padding: 38px 30px 30px;
+}
+.organizer-body h2 {
+  font-size: 34px;
+}
+.organizer-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+  margin-top: 24px;
+}
+.organizer-form label {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.organizer-form input,
+.organizer-form select,
+.organizer-form textarea {
+  width: 100%;
+  border: 1px solid #d5dacb;
+  background: #fffef9;
+  border-radius: 6px;
+  padding: 11px;
+  color: var(--green);
+  font-size: 14px;
+  min-width: 0;
+}
+.organizer-form textarea {
+  resize: vertical;
+}
+.organizer-form .wide {
+  grid-column: 1/-1;
+}
+.field-hint,
+.optional {
+  font-size: 11px;
+  font-weight: 400;
+  color: #77836e;
+}
+.form-error {
+  color: #9a3521;
+  background: #fff0e8;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin: 0;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+@media (max-width: 1100px) {
+  .header-actions {
+    gap: 10px;
+  }
+  .header-inner {
+    gap: 20px;
+  }
+  nav {
+    gap: 22px;
+  }
+  .about-link {
+    font-size: 10px;
+  }
+}
+@media (max-width: 600px) {
+  .header-inner {
+    flex-wrap: wrap;
+    gap: 9px;
+  }
+  .header-actions {
+    margin-left: auto;
+  }
+  .header-inner nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 40px;
+  }
+  .nav-link.active:after {
+    bottom: -16px;
+  }
+  .organizer-trigger {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+  .organizer-body {
+    padding: 32px 22px 24px;
+  }
+  .organizer-form {
+    grid-template-columns: 1fr;
+  }
+  .organizer-form .wide {
+    grid-column: auto;
+  }
+  .organizer-form input,
+  .organizer-form select,
+  .organizer-form textarea {
+    font-size: 16px;
+  }
+  .organizer-body h2 {
+    font-size: 29px;
+  }
+  .organizer-form .primary {
+    font-size: 12px;
+    padding: 13px;
+  }
+  .extra-filters {
+    align-items: stretch;
+  }
+  .availability-note,
+  .submission-note {
+    font-size: 11px;
+  }
+  .season-note {
+    min-height: 0;
+  }
+}

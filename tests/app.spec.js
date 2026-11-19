@@ -130,7 +130,7 @@ test("Bakersfield has local activities, filters, an official calendar and saved 
       name: "A little inspiration for Bakersfield.",
     }),
   ).toBeVisible();
-  await expect(page.locator(".card")).toHaveCount(6);
+  await expect(page.locator(".card")).toHaveCount(20);
   await expect(page.locator(".venue")).toContainText([
     "California Living Museum (CALM)",
     "Bakersfield Museum of Art",
@@ -142,7 +142,7 @@ test("Bakersfield has local activities, filters, an official calendar and saved 
   await page
     .getByRole("button", { name: "Music & nightlife", exact: true })
     .click();
-  await expect(page.locator(".card")).toHaveCount(1);
+  await expect(page.locator(".card")).toHaveCount(2);
   await page
     .getByRole("button", {
       name: "Explore Make a night of it at the Fox",
@@ -160,4 +160,122 @@ test("Bakersfield has local activities, filters, an official calendar and saved 
   await page.getByRole("button", { name: /^My plans/ }).click();
   await expect(page.locator(".card")).toHaveCount(1);
   await expect(page.locator(".card")).toContainText("Bakersfield Fox Theater");
+});
+
+test("Bakersfield seasonal listings, free ideas and uncertain prices work together", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByLabel("Choose a city").selectOption("Bakersfield");
+  await page
+    .getByRole("button", { name: "Seasonal events", exact: true })
+    .click();
+  await expect(page.locator(".card")).toHaveCount(4);
+  await page.getByRole("button", { name: /^Filters/ }).click();
+  await page.getByLabel("Season", { exact: true }).selectOption("Winter");
+  await expect(page.locator(".card")).toHaveCount(2);
+  await page
+    .getByRole("button", {
+      name: "Explore See the season sparkle at CALM",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "seasonal dates are typical, not confirmed",
+  );
+  await expect(page.getByRole("dialog")).toContainText(
+    "Check price with organizer",
+  );
+  await page.getByRole("button", { name: "Save to my plans" }).click();
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  await page.getByRole("button", { name: /^My plans/ }).click();
+  await expect(page.locator("#plan-summary")).toContainText("1 price to check");
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Reset filters" }).click();
+  await page.getByLabel("Budget per person").selectOption("0");
+  await expect(page.locator(".card")).toHaveCount(5);
+  await expect(page.locator(".card")).not.toContainText(["Check price"]);
+});
+
+test("organizer can add a safe local event, find it after reload and save it", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Add an event +" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText(
+    "Public publishing, organizer verification, and ticket sales are not enabled",
+  );
+  const title = "Acoustic night <img src=x onerror=alert(1)>";
+  await page.getByLabel("Event title", { exact: true }).fill(title);
+  await page.getByLabel("Organizer name").fill("Neighbors & friends");
+  await page.getByLabel("Venue", { exact: true }).fill("Local community hall");
+  await page.getByLabel("Event city").selectOption("Bakersfield");
+  await page.getByLabel("Event category").selectOption("Music & nightlife");
+  await page.getByLabel("Start date").fill("2027-12-10");
+  await page.getByLabel("End date").fill("2027-12-09");
+  await page.getByLabel("Event time of day").selectOption("Evening");
+  await page.getByLabel("Admission", { exact: true }).selectOption("paid");
+  await page.getByLabel("Ticket price per person (USD)").fill("12.50");
+  await page.getByLabel("Event website").fill("https://example.org/event");
+  await page
+    .getByLabel("Description", { exact: true })
+    .fill("Bring a friend. Doors at 7pm. All ages.");
+  await page.getByRole("button", { name: "Add to this browser" }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "end date must be on or after",
+  );
+  await page.getByLabel("End date").fill("2027-12-10");
+  await page.getByLabel("Event website").fill("http://example.org/event");
+  await page.getByRole("button", { name: "Add to this browser" }).click();
+  await expect(page.getByRole("alert")).toContainText("Use an HTTPS");
+  await page.getByLabel("Event website").fill("https://example.org/event");
+  await page.getByRole("button", { name: "Add to this browser" }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.locator(".card h3").first()).toHaveText(title);
+  await expect(page.locator(".card").first()).toContainText("$12.5");
+  await expect(page.locator(".card").first()).toContainText(
+    "Organizer submission · local",
+  );
+  await expect(page.locator(".card h3 img")).toHaveCount(0);
+  await page.reload();
+  await page.getByLabel("Choose a city").selectOption("Bakersfield");
+  await page.getByRole("searchbox").fill("Acoustic night");
+  await expect(page.locator(".card")).toHaveCount(1);
+  await page.locator(".card .save-button").click();
+  await page.reload();
+  await page.getByRole("button", { name: /^My plans/ }).click();
+  await expect(page.locator(".card h3")).toHaveText(title);
+  await page.locator(".details-button").click();
+  await expect(dialog).toContainText("Neighbors & friends");
+  await expect(dialog).toContainText("not publicly published or verified");
+});
+
+test("failed event storage preserves the form and does not claim success", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Add an event +" }).click();
+  await page
+    .getByLabel("Event title", { exact: true })
+    .fill("Community picnic");
+  await page.getByLabel("Organizer name").fill("Neighbors");
+  await page.getByLabel("Venue", { exact: true }).fill("Park");
+  await page.getByLabel("Start date").fill("2027-06-01");
+  await page.getByLabel("Event website").fill("https://example.org/picnic");
+  await page.getByLabel("Description", { exact: true }).fill("Bring a picnic.");
+  await page.evaluate(() => {
+    Storage.prototype.setItem = () => {
+      throw new Error("Storage blocked");
+    };
+  });
+  await page.getByRole("button", { name: "Add to this browser" }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "could not save this event",
+  );
+  await expect(page.getByLabel("Event title", { exact: true })).toHaveValue(
+    "Community picnic",
+  );
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.locator(".card")).toHaveCount(6);
 });

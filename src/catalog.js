@@ -270,6 +270,244 @@ export const activities = [
       "Make a meal part of the adventure with Bakersfield’s Basque dining tradition. Sample price is a per-person meal estimate. Check the restaurant website for current menus, service hours, and reservation information.",
     url: "https://woolgrowers.net/",
   },
+  {
+    id: "bakersfield-luigis",
+    city: "Bakersfield",
+    title: "Lunch with a little local history",
+    venue: "Luigi’s Restaurant & Delicatessen",
+    category: "Food & drink",
+    price: null,
+    time: "Daytime",
+    duration: "Check schedule",
+    image: "food",
+    tag: "Italian deli favorites",
+    description:
+      "An Italian restaurant and deli known for sandwiches, pasta, and a historic Bakersfield atmosphere. Check current menus and service hours; meal prices have not been confirmed.",
+    url: "https://www.shopluigis.com/",
+    season: "Year-round",
+    timing: "Year-round idea · check current hours",
+  },
+  {
+    id: "bakersfield-24th-street",
+    city: "Bakersfield",
+    title: "Start your day at 24th Street Cafe",
+    venue: "24th Street Cafe",
+    category: "Food & drink",
+    price: null,
+    time: "Daytime",
+    duration: "Check schedule",
+    image: "food",
+    tag: "Breakfast & brunch",
+    description:
+      "Explore breakfast, brunch, and diner favorites at a well-known local cafe. Visit the restaurant website for current menus, hours, and prices.",
+    url: "https://24thstreetcafe.com/",
+    season: "Year-round",
+    timing: "Year-round idea · check current hours",
+  },
+  {
+    id: "bakersfield-frugattis",
+    city: "Bakersfield",
+    title: "Bring your appetite for Italian",
+    venue: "Frugatti’s",
+    category: "Food & drink",
+    price: null,
+    time: "Evening",
+    duration: "Check schedule",
+    image: "food",
+    tag: "Pasta & wood-fired dishes",
+    description:
+      "Plan an Italian meal with pasta and wood-fired dishes. Menus, service hours, reservations, and prices should be confirmed directly with the restaurant.",
+    url: "https://www.frugattis.com/",
+    season: "Year-round",
+    timing: "Year-round idea · check current hours",
+  },
+  {
+    id: "bakersfield-nuestro-mexico",
+    city: "Bakersfield",
+    title: "Make it a Mexican food night",
+    venue: "Nuestro Mexico Restaurant",
+    category: "Food & drink",
+    price: null,
+    time: "Evening",
+    duration: "Check schedule",
+    image: "food",
+    tag: "Mexican food & seafood",
+    description:
+      "Explore Mexican dishes, seafood, and margaritas. Check the restaurant website for its current menu, prices, hours, and any age restrictions for alcoholic drinks.",
+    url: "https://www.nuestromexicorestaurant.com/",
+    season: "Year-round",
+    timing: "Year-round idea · check current hours",
+  },
+  {
+    id: "bakersfield-river-walk",
+    city: "Bakersfield",
+    title: "Catch a sunset at River Walk",
+    venue: "The Park at River Walk",
+    category: "Outdoors",
+    price: 0,
+    time: "Evening",
+    duration: "Check schedule",
+    image: "park",
+    tag: "An easy day out",
+    description:
+      "Enjoy the lakes and walking paths, or bring your own picnic. General park visits are typically free; special events, reservations, and facilities may cost extra. Use the city website for park information.",
+    url: "https://www.bakersfieldcity.us/",
+    season: "Year-round",
+    timing: "Year-round idea · check current hours",
+  },
+  {
+    id: "bakersfield-parkway",
+    city: "Bakersfield",
+    title: "Follow the Kern River Parkway",
+    venue: "Kern River Parkway Trail",
+    category: "Outdoors",
+    price: 0,
+    time: "Daytime",
+    duration: "Check schedule",
+    image: "garden",
+    tag: "Walk or bring your bike",
+    description:
+      "Take a self-guided walk or bike ride on the parkway. This idea assumes you bring your own bicycle if cycling; rentals and optional purchases are not included. Check city information for trail access and conditions.",
+    url: "https://www.bakersfieldcity.us/",
+    season: "Year-round",
+    timing: "Year-round idea · check current hours",
+  },
+  {
+    id: "bakersfield-murals",
+    city: "Bakersfield",
+    title: "Turn downtown into a photo walk",
+    venue: "Downtown Bakersfield murals",
+    category: "Arts & culture",
+    price: 0,
+    time: "Daytime",
+    duration: "Check schedule",
+    image: "art",
+    tag: "Follow your curiosity",
+    description:
+      "Discover downtown murals on a self-guided photo walk. Viewing outdoor public art generally has no admission charge; transportation, parking, and optional purchases are separate. Browse the visitor guide for local art ideas.",
+    url: "https://www.visitbakersfield.com/",
+    season: "Year-round",
+    timing: "Year-round idea · check current hours",
+  },
+  {
+    id: "bakersfield-library",
+    city: "Bakersfield",
+    title: "Find something new at the library",
+    venue: "Beale Memorial Library",
+    category: "Arts & culture",
+    price: 0,
+    time: "Daytime",
+    duration: "Check schedule",
+    image: "art",
+    tag: "Free community programs",
+    description:
+      "Browse the Kern County Library calendar for free programs at Beale Memorial Library. Program dates, registration, age groups, and availability vary; this is not a confirmed event booking.",
+    url: "https://kerncountylibrary.org/",
+    season: "Year-round",
+    timing: "Year-round idea · check current hours",
+  },
+  {
+    id: "bakersfield-arena",
+    city: "Bakersfield",
+    title: "Find your next arena concert",
+    venue: "Mechanics Bank Arena",
+    category: "Music & nightlife",
+    price: null,
+    time: "Evening",
+    duration: "Check schedule",
+    image: "jazz",
+    tag: "Official concert calendar",
+    description:
+      "Browse the official arena website for touring concerts and other shows in Bakersfield. No upcoming artist, date, ticket price, or availability has been verified in this demo. Confirm current venue information and tickets with the organizer.",
+    url: "https://www.mechanicsbankarena.com/",
+    season: "Year-round",
+    timing: "Year-round idea · check current hours",
+  },
+  {
+    id: "bakersfield-county-fair",
+    city: "Bakersfield",
+    title: "Make a day of the Kern County Fair",
+    venue: "Kern County Fair",
+    category: "Seasonal events",
+    price: null,
+    time: "Daytime",
+    duration: "Check schedule",
+    image: "park",
+    tag: "Seasonal · Fall",
+    description:
+      "A recurring fall fair with attractions, food, and entertainment. September is the typical timeframe, not a confirmed date for an upcoming edition. Admission, rides, concerts, and parking may be priced separately.",
+    url: "https://www.kerncountyfair.com/",
+    season: "Fall",
+    timing: "Typically September · annual dates to confirm",
+  },
+  {
+    id: "bakersfield-village-fest",
+    city: "Bakersfield",
+    title: "A fall evening at Village Fest",
+    venue: "Bakersfield Village Fest",
+    category: "Seasonal events",
+    price: null,
+    time: "Evening",
+    duration: "Check schedule",
+    image: "food",
+    tag: "Seasonal · Fall",
+    description:
+      "A fall festival associated with food, drinks, and live music. Confirm whether an upcoming edition is scheduled, along with its date, ticket inclusions, and age restrictions, on the organizer website.",
+    url: "https://www.villagefest.org/",
+    season: "Fall",
+    timing: "Typically fall · upcoming edition to confirm",
+  },
+  {
+    id: "bakersfield-holidaylights",
+    city: "Bakersfield",
+    title: "See the season sparkle at CALM",
+    venue: "CALM HolidayLights",
+    category: "Seasonal events",
+    price: null,
+    time: "Evening",
+    duration: "Check schedule",
+    image: "garden",
+    tag: "Seasonal · Winter",
+    description:
+      "A holiday-season lights outing at the California Living Museum. Check CALM for the current year’s operating nights, tickets, hours, and availability; no upcoming dates or prices have been confirmed.",
+    url: "https://calmzoo.org/",
+    season: "Winter",
+    timing: "Typically the winter holiday season · dates vary",
+  },
+  {
+    id: "bakersfield-christmas-parade",
+    city: "Bakersfield",
+    title: "Celebrate at the Christmas parade",
+    venue: "Bakersfield Christmas Parade",
+    category: "Seasonal events",
+    price: null,
+    time: "Evening",
+    duration: "Check schedule",
+    image: "park",
+    tag: "Seasonal · December",
+    description:
+      "A recurring December community parade. Confirm the current year’s date, route, viewing arrangements, and any paid seating or parking with the organizer. This listing does not establish a scheduled upcoming parade.",
+    url: "https://www.bakersfieldchristmasparade.com/",
+    season: "Winter",
+    timing: "Typically December · annual date to confirm",
+  },
+  {
+    id: "bakersfield-haggin-market",
+    city: "Bakersfield",
+    title: "Explore a local market morning",
+    venue: "Haggin Oaks Farmers Market",
+    category: "Food & drink",
+    price: null,
+    time: "Daytime",
+    duration: "Check schedule",
+    image: "food",
+    tag: "Recurring market",
+    description:
+      "Browse local food and seasonal produce. This is a recurring market, not an event limited to one season. Special holiday markets, operating dates, hours, and vendor offerings must be checked with the organizer. Purchases cost extra.",
+    url: "https://www.facebook.com/HagginOaksFarmersMarket/",
+    season: "Year-round",
+    timing: "Recurring market · check dates and any holiday editions",
+  },
 ];
 
 export const cities = ["Chicago", "New York", "Austin", "Bakersfield"];
@@ -280,6 +518,7 @@ export const categories = [
   "Food & drink",
   "Music & nightlife",
   "Sightseeing",
+  "Seasonal events",
 ];
 
 export function filterActivities(
@@ -290,6 +529,7 @@ export function filterActivities(
     category = "All experiences",
     budget = "any",
     time = "any",
+    season = "any",
     sort = "recommended",
     saved = null,
   } = {},
@@ -299,25 +539,31 @@ export function filterActivities(
     (item) =>
       (!city || item.city === city) &&
       (category === "All experiences" || item.category === category) &&
-      (budget === "any" || item.price <= Number(budget)) &&
+      (budget === "any" ||
+        (item.price !== null && item.price <= Number(budget))) &&
       (time === "any" || item.time === time) &&
+      (season === "any" || (item.season || "Year-round") === season) &&
       (saved === null || saved.includes(item.id)) &&
       words.every((word) =>
-        `${item.title} ${item.venue} ${item.category} ${item.description}`
+        `${item.title} ${item.venue} ${item.category} ${item.description} ${item.season || "Year-round"} ${item.timing || ""}`
           .toLowerCase()
           .includes(word),
       ),
   );
-  if (sort === "price-low") result.sort((a, b) => a.price - b.price);
-  if (sort === "price-high") result.sort((a, b) => b.price - a.price);
+  if (sort === "price-low" || sort === "price-high")
+    result.sort((a, b) => {
+      if (a.price === null) return b.price === null ? 0 : 1;
+      if (b.price === null) return -1;
+      return sort === "price-low" ? a.price - b.price : b.price - a.price;
+    });
   return result;
 }
 
-export function readSaved(storage) {
+export function readSaved(storage, catalog = activities) {
   try {
     const parsed = JSON.parse(storage.getItem("alpas-plans") || "[]");
     return Array.isArray(parsed)
-      ? [...new Set(parsed.filter((id) => activities.some((a) => a.id === id)))]
+      ? [...new Set(parsed.filter((id) => catalog.some((a) => a.id === id)))]
       : [];
   } catch {
     return [];

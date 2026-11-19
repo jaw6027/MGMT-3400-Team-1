@@ -66,12 +66,53 @@ test("storage recovers from corrupt, invalid and inaccessible values", () => {
 test("catalog has unique IDs, supported image names, valid prices and official HTTPS links", () => {
   assert.equal(new Set(activities.map((a) => a.id)).size, activities.length);
   for (const activity of activities) {
-    assert.ok(Number.isFinite(activity.price) && activity.price >= 0);
+    assert.ok(
+      activity.price === null ||
+        (Number.isFinite(activity.price) && activity.price >= 0),
+    );
     assert.equal(new URL(activity.url).protocol, "https:");
     assert.ok(
       ["river", "garden", "jazz", "art", "park", "food"].includes(
         activity.image,
       ),
     );
+  }
+});
+
+test("seasonal discovery includes typical timeframes and excludes unknown prices from budgets", () => {
+  const fall = filterActivities(activities, {
+    city: "Bakersfield",
+    season: "Fall",
+    category: "Seasonal events",
+  });
+  assert.deepEqual(
+    fall.map((a) => a.id),
+    ["bakersfield-county-fair", "bakersfield-village-fest"],
+  );
+  assert.equal(
+    filterActivities(activities, {
+      city: "Bakersfield",
+      season: "Winter",
+      category: "Seasonal events",
+    }).length,
+    2,
+  );
+  const free = filterActivities(activities, {
+    city: "Bakersfield",
+    budget: "0",
+  });
+  assert.equal(free.length, 5);
+  assert.ok(free.every((a) => a.price === 0));
+  const market = filterActivities(activities, {
+    city: "Bakersfield",
+    query: "Haggin Oaks",
+    season: "Year-round",
+  });
+  assert.equal(market.length, 1);
+  for (const sort of ["price-low", "price-high"]) {
+    const sorted = filterActivities(activities, { city: "Bakersfield", sort });
+    assert.equal(sorted.at(-1).price, null);
+    const firstUnknown = sorted.findIndex((a) => a.price === null);
+    assert.ok(sorted.slice(firstUnknown).every((a) => a.price === null));
   }
 });

@@ -1,5 +1,10 @@
 import "./style.css";
 import {
+  createSubmission,
+  readSubmissions,
+  storeSubmissions,
+} from "./submissions.js";
+import {
   activities,
   cities,
   categories,
@@ -39,10 +44,15 @@ const escape = (str) =>
         char
       ],
   );
-const categoryIcons = ["grid", "leaf", "art", "food", "music", "pin"];
+const categoryIcons = ["grid", "leaf", "art", "food", "music", "pin", "sun"];
 let initialSaved = [];
+let initialSubmissions = [];
 try {
-  initialSaved = readSaved(window.localStorage);
+  initialSubmissions = readSubmissions(window.localStorage);
+  initialSaved = readSaved(window.localStorage, [
+    ...activities,
+    ...initialSubmissions,
+  ]);
 } catch {
   /* Browsers can deny storage access. */
 }
@@ -55,7 +65,10 @@ const state = {
   sort: "recommended",
   view: "explore",
   saved: initialSaved,
+  submissions: initialSubmissions,
+  season: "any",
 };
+const catalog = () => [...state.submissions, ...activities];
 let toastTimer;
 let returnFocus;
 
@@ -64,7 +77,7 @@ document.querySelector("#app").innerHTML = `
   <header class="header"><div class="header-inner">
     <a class="brand" href="#" aria-label="Alpas home">${logo}</a>
     <nav aria-label="Main navigation"><button class="nav-link active" id="explore-nav" aria-current="page">Explore</button><button class="nav-link" id="plans-nav">My plans <span class="plan-count">0</span></button></nav>
-    <button class="about-link" id="about-nav">A little about Alpas ${icon("arrow")}</button>
+    <div class="header-actions"><button class="about-link" id="about-nav">A little about Alpas ${icon("arrow")}</button><button class="organizer-trigger" id="add-event">Add an event +</button></div>
   </div></header>
   <main>
     <section class="hero" aria-labelledby="hero-title">
@@ -83,11 +96,11 @@ document.querySelector("#app").innerHTML = `
       </form>
       <div class="discovery-header"><div><div class="eyebrow" id="section-eyebrow">GO OUT. GET INTO SOMETHING.</div><h2 id="results-title">A little inspiration for <span>Chicago</span><span class="orange-dot">.</span></h2><p id="results-subtitle">Big adventures or small detours. Make the day your own.</p></div><div class="sample-label">${icon("sparkle")} Curated demo collection</div></div>
       <div class="filters-row"><div class="category-list" role="group" aria-label="Activity categories">${categories.map((category, i) => `<button class="category ${i === 0 ? "selected" : ""}" data-category="${category}" aria-pressed="${i === 0}">${icon(categoryIcons[i])}${category}</button>`).join("")}</div><button class="filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="extra-filters">${icon("filter")} Filters <span id="filter-count"></span></button></div>
-      <div class="extra-filters" id="extra-filters" hidden><label>Budget per person<select id="budget"><option value="any">Any budget</option><option value="0">Free</option><option value="20">$20 or less</option><option value="40">$40 or less</option></select></label><label>Time of day<select id="time"><option value="any">Any time</option><option>Daytime</option><option>Evening</option></select></label><button class="text-button" id="reset-filters">Reset filters</button></div>
+      <div class="extra-filters" id="extra-filters" hidden><label>Budget per person<select id="budget"><option value="any">Any budget</option><option value="0">Free</option><option value="20">$20 or less</option><option value="40">$40 or less</option></select></label><label>Time of day<select id="time"><option value="any">Any time</option><option>Daytime</option><option>Evening</option></select></label><label>Season<select id="season" aria-label="Season"><option value="any">Any season</option><option>Year-round</option><option>Spring</option><option>Summer</option><option>Fall</option><option>Winter</option></select></label><button class="text-button" id="reset-filters">Reset filters</button></div>
       <div class="results-toolbar"><p id="result-count" role="status"></p><label class="sort-label">Sort by: <select id="sort" aria-label="Sort experiences"><option value="recommended">Our picks</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select></label></div>
       <div id="plan-summary" hidden></div>
       <div class="cards" id="cards"></div>
-      <p class="demo-disclaimer">A little heads-up: these are sample listings and estimated prices, not live availability. Check the official website for current prices, hours, tickets, and age restrictions.</p>
+      <p class="demo-disclaimer">A little heads-up: these are sample listings and local organizer submissions, not live availability. Seasonal timeframes are typical, not confirmed dates. Unknown prices must be checked with the organizer. Check the official website for current prices, hours, tickets, and age restrictions.</p>
     </section>
     <section class="bottom-banner"><div class="banner-flower" aria-hidden="true">✳︎</div><div><h2>Your next good memory is out there.</h2><p>Save a few favorites. Leave a little room for the unexpected.</p></div><button id="banner-plans">Make a little plan ${icon("arrow")}</button></section>
   </main>
@@ -103,7 +116,7 @@ function notify(message) {
   toastTimer = setTimeout(() => toast.classList.remove("visible"), 3000);
 }
 function toggleSaved(id) {
-  const item = activities.find((a) => a.id === id);
+  const item = catalog().find((a) => a.id === id);
   if (!item) return;
   const added = !state.saved.includes(id);
   state.saved = added
@@ -121,9 +134,19 @@ function toggleSaved(id) {
     `${added ? "Added to" : "Removed from"} your plans.${persisted ? "" : " Browser storage is unavailable; plans will last for this visit."}`,
   );
 }
+function priceLabel(item) {
+  return item.price === null
+    ? "Check price with organizer"
+    : item.price === 0
+      ? "Free to explore"
+      : `$${item.price} est. / person`;
+}
+function timingLabel(item) {
+  return item.timing || "Year-round idea · check current hours";
+}
 function card(item) {
   const saved = state.saved.includes(item.id);
-  return `<article class="card"><div class="card-image"><button class="image-open" data-details="${item.id}" aria-label="View details for ${escape(item.title)}"><img src="/images/${item.image}.svg" alt="" width="800" height="500" loading="lazy"></button><span class="image-tag">${item.tag}</span><button class="save-button ${saved ? "is-saved" : ""}" data-save="${item.id}" aria-pressed="${saved}" aria-label="${saved ? "Remove" : "Save"} ${escape(item.title)}${saved ? " from plans" : " to plans"}">${icon("heart")}</button></div><div class="card-body"><div class="card-category">${item.category}<span>${icon("clock")}${item.duration}</span></div><h3><button data-details="${item.id}">${item.title}</button></h3><p class="venue">${icon("pin")}${item.venue}${state.view === "plans" ? ` · ${item.city}` : ""}</p><div class="card-bottom"><div class="price">${item.price === 0 ? '<strong class="free">Free</strong><span>to explore</span>' : `<strong>$${item.price}</strong><span>est. / person</span>`}</div><button class="details-button" data-details="${item.id}" aria-label="Explore ${escape(item.title)}">Explore ${icon("arrow")}</button></div></div></article>`;
+  return `<article class="card"><div class="card-image"><button class="image-open" data-details="${escape(item.id)}" aria-label="View details for ${escape(item.title)}"><img src="/images/${escape(item.image)}.svg" alt="" width="800" height="500" loading="lazy"></button><span class="image-tag">${escape(item.tag)}</span><button class="save-button ${saved ? "is-saved" : ""}" data-save="${escape(item.id)}" aria-pressed="${saved}" aria-label="${saved ? "Remove" : "Save"} ${escape(item.title)}${saved ? " from plans" : " to plans"}">${icon("heart")}</button></div><div class="card-body"><div class="card-category">${escape(item.category)}<span>${icon("clock")}${escape(item.duration)}</span></div><h3><button data-details="${escape(item.id)}">${escape(item.title)}</button></h3><p class="venue">${icon("pin")}${escape(item.venue)}${state.view === "plans" ? ` · ${escape(item.city)}` : ""}</p><p class="season-note">${icon("sun")}${escape(timingLabel(item))}</p><div class="card-bottom"><div class="price">${item.price === null ? '<strong class="unknown-price">Check price</strong><span>with organizer</span>' : item.price === 0 ? '<strong class="free">Free</strong><span>to explore</span>' : `<strong>$${item.price}</strong><span>est. / person</span>`}</div><button class="details-button" data-details="${escape(item.id)}" aria-label="Explore ${escape(item.title)}">Explore ${icon("arrow")}</button></div></div></article>`;
 }
 function render() {
   const focusedSave = document.activeElement?.closest("[data-save]");
@@ -131,12 +154,12 @@ function render() {
   const focusedCard = focusedSave?.closest(".card");
   const planning = state.view === "plans";
   const items = planning
-    ? filterActivities(activities, {
+    ? filterActivities(catalog(), {
         city: "",
         saved: state.saved,
         sort: state.sort,
       })
-    : filterActivities(activities, { ...state, saved: null });
+    : filterActivities(catalog(), { ...state, saved: null });
   document
     .querySelectorAll(".plan-count")
     .forEach((el) => (el.textContent = state.saved.length));
@@ -163,7 +186,8 @@ function render() {
     : `<div class="empty-state">${icon(planning ? "heart" : "search")}<h3>${planning ? "Good plans start with a favorite." : "A little too off the beaten path."}</h3><p>${planning ? "Tap the heart on any experience to keep it here for later." : "Try a different search or loosen your filters to find more possibilities."}</p><button class="primary" id="empty-action">${planning ? "Find an adventure" : "Clear search & filters"} ${icon("arrow")}</button></div>`;
   const summary = document.querySelector("#plan-summary");
   summary.hidden = !planning || !items.length;
-  summary.innerHTML = `<span>${icon("heart")} ${items.length} ideas, endless possibilities.</span><span>Estimated total per person <strong>$${items.reduce((sum, a) => sum + a.price, 0)}</strong></span>`;
+  const unknownPrices = items.filter((item) => item.price === null).length;
+  summary.innerHTML = `<span>${icon("heart")} ${items.length} ideas, endless possibilities.</span><span>${unknownPrices ? "Known estimates per person" : "Estimated total per person"} <strong>$${items.reduce((sum, a) => sum + (a.price || 0), 0)}</strong>${unknownPrices ? `<small>+ ${unknownPrices} ${unknownPrices === 1 ? "price" : "prices"} to check</small>` : ""}</span>`;
   ["explore", "plans"].forEach((view) => {
     const nav = document.querySelector(`#${view}-nav`);
     nav.classList.toggle("active", state.view === view);
@@ -175,7 +199,10 @@ function render() {
     btn.classList.toggle("selected", selected);
     btn.setAttribute("aria-pressed", selected);
   });
-  const count = Number(state.budget !== "any") + Number(state.time !== "any");
+  const count =
+    Number(state.budget !== "any") +
+    Number(state.time !== "any") +
+    Number(state.season !== "any");
   document.querySelector("#filter-count").textContent = count
     ? `(${count})`
     : "";
@@ -206,10 +233,10 @@ function openDialog(html) {
   document.querySelector("#details-dialog").showModal();
 }
 function showDetails(id) {
-  const item = activities.find((a) => a.id === id);
+  const item = catalog().find((a) => a.id === id);
   if (!item) return;
   openDialog(
-    `<img class="dialog-image" src="/images/${item.image}.svg" alt="" width="800" height="500"><div class="dialog-body"><div class="eyebrow">${item.city.toUpperCase()} / ${item.category.toUpperCase()}</div><h2 id="dialog-title">${item.title}</h2><p class="venue">${icon("pin")}${item.venue}</p><p class="description">${item.description}</p><div class="detail-facts"><span>${icon("clock")} ${item.duration}</span><span>${icon("sun")} ${item.time}</span><strong>${item.price ? `$${item.price} est. / person` : "Free to explore"}</strong></div><p class="price-note">Demo listing · Prices are estimates. Confirm admission, dates, availability, and restrictions with the venue.</p><div class="dialog-actions"><a class="primary" href="${item.url}" target="_blank" rel="noopener noreferrer">Official website ${icon("external")}<span class="sr-only"> (opens in a new tab)</span></a><button class="secondary" id="dialog-save" data-save="${item.id}"></button></div></div>`,
+    `<img class="dialog-image" src="/images/${escape(item.image)}.svg" alt="" width="800" height="500"><div class="dialog-body"><div class="eyebrow">${escape(item.city.toUpperCase())} / ${escape(item.category.toUpperCase())}</div><h2 id="dialog-title">${escape(item.title)}</h2><p class="venue">${icon("pin")}${escape(item.venue)}</p><p class="description">${escape(item.description)}</p><p class="availability-note"><strong>When to go</strong> ${escape(timingLabel(item))}</p>${item.source === "organizer" ? `<p class="submission-note">Added by ${escape(item.organizer)} · Local browser submission, not publicly published or verified.</p>` : ""}<div class="detail-facts"><span>${icon("clock")} ${escape(item.duration)}</span><span>${icon("sun")} ${escape(item.time)}</span><strong>${escape(priceLabel(item))}</strong></div><p class="price-note">${item.source === "organizer" ? "Local organizer submission · Not verified." : "Demo listing · Prices are estimates; seasonal dates are typical, not confirmed."} Confirm admission, dates, availability, and restrictions with the venue.</p><div class="dialog-actions"><a class="primary" href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">Official website ${icon("external")}<span class="sr-only"> (opens in a new tab)</span></a><button class="secondary" id="dialog-save" data-save="${escape(item.id)}"></button></div></div>`,
   );
   updateDialogSave(id);
 }
@@ -219,10 +246,12 @@ function resetFilters() {
     category: "All experiences",
     budget: "any",
     time: "any",
+    season: "any",
   });
   document.querySelector("#query").value = "";
   document.querySelector("#budget").value = "any";
   document.querySelector("#time").value = "any";
+  document.querySelector("#season").value = "any";
   render();
 }
 
@@ -272,7 +301,7 @@ document.querySelector("#sort").addEventListener("change", (event) => {
   state.sort = event.target.value;
   render();
 });
-["budget", "time"].forEach((key) =>
+["budget", "time", "season"].forEach((key) =>
   document.querySelector(`#${key}`).addEventListener("change", (event) => {
     state[key] = event.target.value;
     render();
@@ -302,7 +331,7 @@ document
   .querySelector("#about-nav")
   .addEventListener("click", () =>
     openDialog(
-      `<div class="about-body"><div class="eyebrow">LESS PLANNING. MORE LIVING.</div><h2 id="dialog-title">Hello, we're Alpas<span class="orange-dot">.</span></h2><p>A new city can mean a thousand possibilities—and no idea where to start. Alpas brings activities, places, estimated prices, and official websites together so making plans feels a little easier.</p><div class="about-steps"><p><strong>01</strong> Pick a city and follow your curiosity.</p><p><strong>02</strong> Find something that fits your mood and budget.</p><p><strong>03</strong> Save your favorites, then visit the official website to plan your visit.</p></div><p class="price-note">This first version uses a curated demo catalog for Chicago, New York, Austin, and Bakersfield. It does not provide live event inventory, ticket booking, or confirmed prices. Saved plans stay in this browser; no account is required.</p></div>`,
+      `<div class="about-body"><div class="eyebrow">LESS PLANNING. MORE LIVING.</div><h2 id="dialog-title">Hello, we're Alpas<span class="orange-dot">.</span></h2><p>A new city can mean a thousand possibilities—and no idea where to start. Alpas brings activities, places, estimated prices, and official websites together so making plans feels a little easier.</p><div class="about-steps"><p><strong>01</strong> Pick a city and follow your curiosity.</p><p><strong>02</strong> Find something that fits your mood and budget.</p><p><strong>03</strong> Save your favorites, then visit the official website to plan your visit.</p></div><p class="price-note">Organizers can add local demo events using Add an event. Submissions stay in this browser and are not publicly published or verified. This first version also uses a curated demo catalog for Chicago, New York, Austin, and Bakersfield. It does not provide live event inventory, ticket booking, or confirmed prices. Saved plans stay in this browser; no account is required.</p></div>`,
     ),
   );
 const dialog = document.querySelector("#details-dialog");
@@ -325,9 +354,9 @@ dialog.addEventListener("keydown", (event) => {
   if (event.key !== "Tab") return;
   const focusable = [
     ...dialog.querySelectorAll(
-      'button, a[href], select, input, [tabindex="0"]',
+      'button, a[href], select, input, textarea, [tabindex="0"]',
     ),
-  ].filter((el) => !el.disabled);
+  ].filter((el) => !el.disabled && !el.hidden && el.getClientRects().length);
   const first = focusable[0],
     last = focusable.at(-1);
   if (event.shiftKey && document.activeElement === first) {
@@ -343,3 +372,80 @@ dialog.addEventListener("close", () => {
   if (returnFocus?.isConnected) returnFocus.focus();
 });
 render();
+
+function openOrganizerForm() {
+  openDialog(`<div class="organizer-body"><div class="eyebrow">BRING PEOPLE TOGETHER</div><h2 id="dialog-title">Add your event<span class="orange-dot">.</span></h2><p class="submission-note">Local demo: your event will appear in Alpas on this browser only. Public publishing, organizer verification, and ticket sales are not enabled.</p>
+    <form id="organizer-form" class="organizer-form">
+      <label class="wide">Event title<input name="title" required maxlength="100" placeholder="e.g. Downtown acoustic night"></label>
+      <label>Organizer name<input name="organizer" required maxlength="100" autocomplete="organization"></label>
+      <label>Venue<input name="venue" required maxlength="100" placeholder="Venue or meeting place"></label>
+      <label>Event city<select name="city">${cities.map((city) => `<option${city === state.city ? " selected" : ""}>${city}</option>`).join("")}</select></label>
+      <label>Event category<select name="category">${categories
+        .slice(1)
+        .map((category) => `<option>${escape(category)}</option>`)
+        .join("")}</select></label>
+      <label>Start date<input name="startDate" type="date" required></label>
+      <label>End date <span class="optional">(optional)</span><input name="endDate" type="date"></label>
+      <label>Event time of day<select name="time"><option>Daytime</option><option>Evening</option></select></label>
+      <label>Admission<select name="pricing" id="event-pricing" aria-label="Admission"><option value="unknown">Check organizer for price</option><option value="free">Free</option><option value="paid">Paid</option></select></label>
+      <label id="event-price-field" hidden>Ticket price per person (USD)<input name="price" type="number" min="0.01" max="100000" step="0.01" inputmode="decimal" disabled></label>
+      <label class="wide">Event website<input name="url" type="url" required maxlength="2000" placeholder="https://example.com/event" aria-describedby="website-hint"><span class="field-hint" id="website-hint">Use a full HTTPS link to the event or organizer.</span></label>
+      <label class="wide">Description<textarea name="description" required maxlength="1500" rows="4" placeholder="What can people expect? Include start times, ticket details, and any age restrictions."></textarea></label>
+      <p class="form-error wide" id="organizer-error" role="alert" hidden></p>
+      <div class="form-actions wide"><button class="secondary" type="button" id="cancel-event">Cancel</button><button class="primary" type="submit">Add to this browser ${icon("arrow")}</button></div>
+    </form></div>`);
+}
+document
+  .querySelector("#add-event")
+  .addEventListener("click", openOrganizerForm);
+document
+  .querySelector("#dialog-content")
+  .addEventListener("change", (event) => {
+    if (event.target.id !== "event-pricing") return;
+    const paid = event.target.value === "paid";
+    const field = document.querySelector("#event-price-field");
+    field.hidden = !paid;
+    field.querySelector("input").disabled = !paid;
+    field.querySelector("input").required = paid;
+  });
+document.querySelector("#dialog-content").addEventListener("click", (event) => {
+  if (event.target.closest("#cancel-event")) dialog.close();
+});
+document
+  .querySelector("#dialog-content")
+  .addEventListener("submit", (event) => {
+    if (event.target.id !== "organizer-form") return;
+    event.preventDefault();
+    const error = document.querySelector("#organizer-error");
+    let submission;
+    try {
+      submission = createSubmission(
+        Object.fromEntries(new FormData(event.target)),
+      );
+    } catch (reason) {
+      error.textContent = reason.message;
+      error.hidden = false;
+      return;
+    }
+    const next = [submission, ...state.submissions];
+    try {
+      storeSubmissions(localStorage, next);
+    } catch {
+      error.textContent =
+        "Your browser could not save this event. Free up browser storage or enable site storage, then try again. Your form is still here.";
+      error.hidden = false;
+      return;
+    }
+    state.submissions = next;
+    state.city = submission.city;
+    state.sort = "recommended";
+    state.view = "explore";
+    document.querySelector("#city").value = state.city;
+    document.querySelector("#sort").value = state.sort;
+    resetFilters();
+    dialog.close();
+    document
+      .querySelector(".discovery-header")
+      .scrollIntoView({ behavior: "smooth", block: "start" });
+    notify("Event added to this browser. It is not publicly published.");
+  });
