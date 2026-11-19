@@ -1,3 +1,4 @@
+import { matchesActivityType } from "./activity-types.js";
 // Curated demo content, not live inventory. Prices are illustrative estimates.
 export const activities = [
   {
@@ -530,6 +531,7 @@ export function filterActivities(
     budget = "any",
     time = "any",
     season = "any",
+    type = "all",
     sort = "recommended",
     saved = null,
   } = {},
@@ -538,6 +540,7 @@ export function filterActivities(
   const result = items.filter(
     (item) =>
       (!city || item.city === city) &&
+      matchesActivityType(item, type) &&
       (category === "All experiences" || item.category === category) &&
       (budget === "any" ||
         (item.price !== null && item.price <= Number(budget))) &&

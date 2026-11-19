@@ -16,7 +16,9 @@ Vite listens on port 5173 by default. The app uses vanilla JavaScript, CSS, and 
 ## What works
 
 - Curated sample activities for Chicago, New York, Austin, and Bakersfield
-- Keyword search plus category, budget, time-of-day, and season filters
+- Keyword search plus category, activity-type, budget, time-of-day, and season filters
+- Nearby trips from Bakersfield, Chicago, New York, and Austin, filtered by driving time and activity type
+- Save trip ideas alongside local experiences in My plans
 - Bakersfield restaurants, inexpensive outings, concert calendar links, and seasonal event ideas
 - Organizer event form with dates, venue, category, price, description, and an HTTPS website
 - Organizer submissions appear immediately and persist in the same browser; this is not public publishing
@@ -24,6 +26,16 @@ Vite listens on port 5173 by default. The app uses vanilla JavaScript, CSS, and 
 - Saved plans across cities, persisted in browser local storage
 - Estimated per-person plan total and responsive layouts
 - Keyboard-accessible modal dialogs and announced result counts
+
+## Nearby trips and activity types
+
+Choose **Nearby trips** in the header or **Find a nearby trip** below the city listings. Select a starting city, then combine a driving-time range with an activity type: Outdoors, Theme parks, Nightlife, Date night, Arts & culture, or Sightseeing. The starting city is selected manually; the app does not request your device location. These are curated route ideas, not a general routing engine.
+
+The ranges are **under 60 minutes**, **60–180 minutes inclusive**, and **over 180 minutes**. Driving times are rough one-way estimates from the central starting city to the named destination. They exclude stops and are not calculated from live traffic or a maps API. The starting city stays attached to a saved trip, so changing origins does not change an existing plan. Destination details include seasonal notes, the official website, and an external Google Maps route link to check the actual drive.
+
+Trip costs refer to the described activity, not the entire getaway. Free walking ideas can still involve transport, parking, meals, or lodging costs. Vehicle-based national park fees are left unknown (`price: null`) rather than incorrectly divided into a per-person price. My plans flags unknown prices and explains excluded travel costs. Verify current fees, reservations, seasonal access, and road conditions on the linked official sites.
+
+Edit `src/trips.js` to maintain curated destinations, origins, drive estimates, and type tags. Local experiences also have an **Activity type** selector, which combines with existing filters. Tags may overlap: a waterfront walk can be both Outdoors and Date night. Existing activity categories provide default type tags; entries can set `types` explicitly. If a city has no matching theme parks, the empty state offers Nearby trips.
 
 ## Audience insights demo
 
@@ -61,3 +73,5 @@ CHROMIUM_PATH=/path/to/chromium npm run test:e2e
 ```
 
 The production build is written to `dist/` and can be deployed to a static website host. No deployment is configured by this repository.
+
+For annual-event research examples and official calendar links, see [California event references](docs/california-event-reference.md). These references are not verified upcoming events or a popularity ranking.

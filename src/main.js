@@ -1,4 +1,7 @@
 import "./style.css";
+import { activityTypes } from "./activity-types.js";
+import { trips } from "./trips.js";
+import { setupTrips, tripDetails } from "./trips-ui.js";
 import { setupAudience } from "./audience-ui.js";
 import {
   createSubmission,
@@ -53,6 +56,7 @@ try {
   initialSaved = readSaved(window.localStorage, [
     ...activities,
     ...initialSubmissions,
+    ...trips,
   ]);
 } catch {
   /* Browsers can deny storage access. */
@@ -68,8 +72,9 @@ const state = {
   saved: initialSaved,
   submissions: initialSubmissions,
   season: "any",
+  type: "all",
 };
-const catalog = () => [...state.submissions, ...activities];
+const catalog = () => [...state.submissions, ...activities, ...trips];
 let toastTimer;
 let returnFocus;
 
@@ -77,7 +82,7 @@ const logo = `<span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 40 40
 document.querySelector("#app").innerHTML = `
   <header class="header"><div class="header-inner">
     <a class="brand" href="#" aria-label="Alpas home">${logo}</a>
-    <nav aria-label="Main navigation"><button class="nav-link active" id="explore-nav" aria-current="page">Explore</button><button class="nav-link" id="plans-nav">My plans <span class="plan-count">0</span></button></nav>
+    <nav aria-label="Main navigation"><button class="nav-link active" id="explore-nav" aria-current="page">Explore</button><button class="nav-link" id="trips-nav">Nearby trips</button><button class="nav-link" id="plans-nav">My plans <span class="plan-count">0</span></button></nav>
     <div class="header-actions"><button class="about-link" id="about-nav">A little about Alpas ${icon("arrow")}</button><button class="organizer-trigger" id="add-event">Add an event +</button></div>
   </div></header>
   <main>
@@ -89,6 +94,7 @@ document.querySelector("#app").innerHTML = `
       </div>
       <div class="hero-art"><img src="/images/hero.svg" alt="Illustration of a riverboat exploring a warm, sunlit Chicago skyline" width="800" height="600" fetchpriority="high"><span class="art-label">A little change of scenery.</span><div class="floating-note">${icon("pin")} Somewhere new.<br><strong>Something you.</strong><span class="note-star">✳︎</span></div></div>
     </section>
+    <section id="trips-section" aria-label="Trips from your city" hidden></section>
     <section class="explore-section" aria-label="Discover experiences">
       <form class="search-bar" id="search-form" role="search">
         <label class="city-field">${icon("pin")}<span><span class="field-label">WHERE TO?</span><select id="city" aria-label="Choose a city">${cities.map((city) => `<option>${city}</option>`).join("")}</select></span></label>
@@ -96,6 +102,7 @@ document.querySelector("#app").innerHTML = `
         <button class="primary search-button" type="submit">Find my fun ${icon("arrow")}</button>
       </form>
       <div class="discovery-header"><div><div class="eyebrow" id="section-eyebrow">GO OUT. GET INTO SOMETHING.</div><h2 id="results-title">A little inspiration for <span>Chicago</span><span class="orange-dot">.</span></h2><p id="results-subtitle">Big adventures or small detours. Make the day your own.</p></div><div class="sample-label">${icon("sparkle")} Curated demo collection</div></div>
+      <div class="activity-types-bar"><label for="activity-type">What’s your kind of fun?</label><select id="activity-type" aria-label="Activity type"><option value="all">All types</option>${activityTypes.map((type) => `<option>${escape(type)}</option>`).join("")}</select><span>Pick a mood, then narrow it down below.</span></div>
       <div class="filters-row"><div class="category-list" role="group" aria-label="Activity categories">${categories.map((category, i) => `<button class="category ${i === 0 ? "selected" : ""}" data-category="${category}" aria-pressed="${i === 0}">${icon(categoryIcons[i])}${category}</button>`).join("")}</div><button class="filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="extra-filters">${icon("filter")} Filters <span id="filter-count"></span></button></div>
       <div class="extra-filters" id="extra-filters" hidden><label>Budget per person<select id="budget"><option value="any">Any budget</option><option value="0">Free</option><option value="20">$20 or less</option><option value="40">$40 or less</option></select></label><label>Time of day<select id="time"><option value="any">Any time</option><option>Daytime</option><option>Evening</option></select></label><label>Season<select id="season" aria-label="Season"><option value="any">Any season</option><option>Year-round</option><option>Spring</option><option>Summer</option><option>Fall</option><option>Winter</option></select></label><button class="text-button" id="reset-filters">Reset filters</button></div>
       <div class="results-toolbar"><p id="result-count" role="status"></p><label class="sort-label">Sort by: <select id="sort" aria-label="Sort experiences"><option value="recommended">Our picks</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select></label></div>
@@ -103,6 +110,7 @@ document.querySelector("#app").innerHTML = `
       <div class="cards" id="cards"></div>
       <p class="demo-disclaimer">A little heads-up: these are sample listings and local organizer submissions, not live availability. Seasonal timeframes are typical, not confirmed dates. Unknown prices must be checked with the organizer. Check the official website for current prices, hours, tickets, and age restrictions.</p>
     </section>
+    <section class="trip-invitation"><div><div class="eyebrow">WORTH A LITTLE DRIVE</div><h2>Your next adventure could be just outside the city.</h2><p>Choose a starting city, a type of fun, and how far you want to go.</p></div><button class="secondary" id="open-trips">Find a nearby trip ${icon("arrow")}</button></section>
     <section class="bottom-banner"><div class="banner-flower" aria-hidden="true">✳︎</div><div><h2>Your next good memory is out there.</h2><p>Save a few favorites. Leave a little room for the unexpected.</p></div><button id="banner-plans">Make a little plan ${icon("arrow")}</button></section>
   </main>
   <footer><a class="brand footer-brand" href="#" aria-label="Alpas home">${logo}</a><p>A little discovery. A lot of possibility.</p><button class="text-button" id="audience-nav">Audience insights</button><span>Made for going places. © ${new Date().getFullYear()} Alpas</span></footer>
@@ -147,24 +155,33 @@ function timingLabel(item) {
 }
 function card(item) {
   const saved = state.saved.includes(item.id);
-  return `<article class="card"><div class="card-image"><button class="image-open" data-details="${escape(item.id)}" aria-label="View details for ${escape(item.title)}"><img src="/images/${escape(item.image)}.svg" alt="" width="800" height="500" loading="lazy"></button><span class="image-tag">${escape(item.tag)}</span><button class="save-button ${saved ? "is-saved" : ""}" data-save="${escape(item.id)}" aria-pressed="${saved}" aria-label="${saved ? "Remove" : "Save"} ${escape(item.title)}${saved ? " from plans" : " to plans"}">${icon("heart")}</button></div><div class="card-body"><div class="card-category">${escape(item.category)}<span>${icon("clock")}${escape(item.duration)}</span></div><h3><button data-details="${escape(item.id)}">${escape(item.title)}</button></h3><p class="venue">${icon("pin")}${escape(item.venue)}${state.view === "plans" ? ` · ${escape(item.city)}` : ""}</p><p class="season-note">${icon("sun")}${escape(timingLabel(item))}</p><div class="card-bottom"><div class="price">${item.price === null ? '<strong class="unknown-price">Check price</strong><span>with organizer</span>' : item.price === 0 ? '<strong class="free">Free</strong><span>to explore</span>' : `<strong>$${item.price}</strong><span>est. / person</span>`}</div><button class="details-button" data-details="${escape(item.id)}" aria-label="Explore ${escape(item.title)}">Explore ${icon("arrow")}</button></div></div></article>`;
+  return `<article class="card"><div class="card-image"><button class="image-open" data-details="${escape(item.id)}" aria-label="View details for ${escape(item.title)}"><img src="/images/${escape(item.image)}.svg" alt="" width="800" height="500" loading="lazy"></button><span class="image-tag">${escape(item.tag)}</span><button class="save-button ${saved ? "is-saved" : ""}" data-save="${escape(item.id)}" aria-pressed="${saved}" aria-label="${saved ? "Remove" : "Save"} ${escape(item.title)}${saved ? " from plans" : " to plans"}">${icon("heart")}</button></div><div class="card-body"><div class="card-category">${escape(item.source === "trip" ? item.types[0] : item.category)}<span>${icon("clock")}${escape(item.duration)}</span></div><h3><button data-details="${escape(item.id)}">${escape(item.title)}</button></h3><p class="venue">${icon("pin")}${escape(item.venue)}${item.source === "trip" ? ` · from ${escape(item.origin)}` : ""}${state.view === "plans" && item.source !== "trip" ? ` · ${escape(item.city)}` : ""}</p><p class="season-note">${icon("sun")}${escape(timingLabel(item))}</p>${item.source === "trip" ? `<p class="trip-cost-note">${escape(item.costLabel)}</p>` : ""}<div class="card-bottom"><div class="price">${item.price === null ? '<strong class="unknown-price">Check price</strong><span>with organizer</span>' : item.price === 0 ? '<strong class="free">Free</strong><span>to explore</span>' : `<strong>$${item.price}</strong><span>est. / person</span>`}</div><button class="details-button" data-details="${escape(item.id)}" aria-label="Explore ${escape(item.title)}">Explore ${icon("arrow")}</button></div></div></article>`;
 }
 function render() {
   const focusedSave = document.activeElement?.closest("[data-save]");
   const focusedId = focusedSave?.dataset.save;
   const focusedCard = focusedSave?.closest(".card");
   const planning = state.view === "plans";
+  const tripping = state.view === "trips";
+  document.querySelector(".explore-section").hidden = tripping;
+  document.querySelector("#trips-section").hidden = !tripping;
+  tripsView.render(tripping);
+  document.querySelector(".trip-invitation").hidden = tripping;
   const items = planning
     ? filterActivities(catalog(), {
         city: "",
         saved: state.saved,
         sort: state.sort,
       })
-    : filterActivities(catalog(), { ...state, saved: null });
+    : filterActivities(
+        catalog().filter((item) => item.source !== "trip"),
+        { ...state, saved: null },
+      );
   document
     .querySelectorAll(".plan-count")
     .forEach((el) => (el.textContent = state.saved.length));
-  document.querySelector("#hero-title").closest(".hero").hidden = planning;
+  document.querySelector("#hero-title").closest(".hero").hidden =
+    planning || tripping;
   document.querySelector("#search-form").hidden = planning;
   document.querySelector(".filters-row").hidden = planning;
   document.querySelector("#extra-filters").hidden =
@@ -182,14 +199,19 @@ function render() {
     : "Big adventures or small detours. Make the day your own.";
   document.querySelector("#result-count").textContent =
     `${items.length} ${planning ? "saved" : "handpicked"} experience${items.length === 1 ? "" : "s"}${planning ? "" : " to get you going"}`;
-  document.querySelector("#cards").innerHTML = items.length
-    ? items.map(card).join("")
-    : `<div class="empty-state">${icon(planning ? "heart" : "search")}<h3>${planning ? "Good plans start with a favorite." : "A little too off the beaten path."}</h3><p>${planning ? "Tap the heart on any experience to keep it here for later." : "Try a different search or loosen your filters to find more possibilities."}</p><button class="primary" id="empty-action">${planning ? "Find an adventure" : "Clear search & filters"} ${icon("arrow")}</button></div>`;
+  document.querySelector("#cards").innerHTML = tripping
+    ? ""
+    : items.length
+      ? items.map(card).join("")
+      : `<div class="empty-state">${icon(planning ? "heart" : "search")}<h3>${planning ? "Good plans start with a favorite." : "A little too off the beaten path."}</h3><p>${planning ? "Tap the heart on any experience to keep it here for later." : "Try a different search or loosen your filters to find more possibilities."}</p><button class="primary" id="empty-action">${planning ? "Find an adventure" : "Clear search & filters"} ${icon("arrow")}</button>${!planning ? '<button class="text-button" id="trips-empty-link">Look beyond the city in Nearby trips</button>' : ""}</div>`;
   const summary = document.querySelector("#plan-summary");
   summary.hidden = !planning || !items.length;
   const unknownPrices = items.filter((item) => item.price === null).length;
   summary.innerHTML = `<span>${icon("heart")} ${items.length} ideas, endless possibilities.</span><span>${unknownPrices ? "Known estimates per person" : "Estimated total per person"} <strong>$${items.reduce((sum, a) => sum + (a.price || 0), 0)}</strong>${unknownPrices ? `<small>+ ${unknownPrices} ${unknownPrices === 1 ? "price" : "prices"} to check</small>` : ""}</span>`;
-  ["explore", "plans"].forEach((view) => {
+  if (planning && items.some((item) => item.source === "trip"))
+    summary.innerHTML +=
+      '<p class="trip-plan-note">Trip costs cover the listed activity only. Fuel, transport, food, parking, and lodging may be extra; vehicle-based park fees are not included in per-person totals.</p>';
+  ["explore", "trips", "plans"].forEach((view) => {
     const nav = document.querySelector(`#${view}-nav`);
     nav.classList.toggle("active", state.view === view);
     if (state.view === view) nav.setAttribute("aria-current", "page");
@@ -203,18 +225,24 @@ function render() {
   const count =
     Number(state.budget !== "any") +
     Number(state.time !== "any") +
-    Number(state.season !== "any");
+    Number(state.season !== "any") +
+    Number(state.type !== "all");
   document.querySelector("#filter-count").textContent = count
     ? `(${count})`
     : "";
   if (focusedCard && focusedId) {
-    const candidate = [...document.querySelectorAll("#cards [data-save]")].find(
-      (button) => button.dataset.save === focusedId,
-    );
+    const scope = tripping ? "#trip-cards" : "#cards";
+    const candidate = [
+      ...document.querySelectorAll(`${scope} [data-save]`),
+    ].find((button) => button.dataset.save === focusedId);
     (
-      candidate || document.querySelector("#cards [data-save], #empty-action")
+      candidate || document.querySelector(`${scope} [data-save], #empty-action`)
     )?.focus({ preventScroll: true });
   }
+}
+function openTripsFromCity() {
+  tripsView.setFilters({ origin: state.city, type: state.type });
+  changeView("trips");
 }
 function changeView(view) {
   state.view = view;
@@ -236,6 +264,11 @@ function openDialog(html) {
 function showDetails(id) {
   const item = catalog().find((a) => a.id === id);
   if (!item) return;
+  if (item.source === "trip") {
+    openDialog(tripDetails(item, { escape, icon }));
+    updateDialogSave(id);
+    return;
+  }
   openDialog(
     `<img class="dialog-image" src="/images/${escape(item.image)}.svg" alt="" width="800" height="500"><div class="dialog-body"><div class="eyebrow">${escape(item.city.toUpperCase())} / ${escape(item.category.toUpperCase())}</div><h2 id="dialog-title">${escape(item.title)}</h2><p class="venue">${icon("pin")}${escape(item.venue)}</p><p class="description">${escape(item.description)}</p><p class="availability-note"><strong>When to go</strong> ${escape(timingLabel(item))}</p>${item.source === "organizer" ? `<p class="submission-note">Added by ${escape(item.organizer)} · Local browser submission, not publicly published or verified.</p>` : ""}<div class="detail-facts"><span>${icon("clock")} ${escape(item.duration)}</span><span>${icon("sun")} ${escape(item.time)}</span><strong>${escape(priceLabel(item))}</strong></div><p class="price-note">${item.source === "organizer" ? "Local organizer submission · Not verified." : "Demo listing · Prices are estimates; seasonal dates are typical, not confirmed."} Confirm admission, dates, availability, and restrictions with the venue.</p><div class="dialog-actions"><a class="primary" href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">Official website ${icon("external")}<span class="sr-only"> (opens in a new tab)</span></a><button class="secondary" id="dialog-save" data-save="${escape(item.id)}"></button></div></div>`,
   );
@@ -248,11 +281,13 @@ function resetFilters() {
     budget: "any",
     time: "any",
     season: "any",
+    type: "all",
   });
   document.querySelector("#query").value = "";
   document.querySelector("#budget").value = "any";
   document.querySelector("#time").value = "any";
   document.querySelector("#season").value = "any";
+  document.querySelector("#activity-type").value = "all";
   render();
 }
 
@@ -277,6 +312,7 @@ document.addEventListener("click", (event) => {
     if (state.view === "plans") changeView("explore");
     else resetFilters();
   }
+  if (event.target.closest("#trips-empty-link")) openTripsFromCity();
   if (event.target.closest(".brand")) {
     event.preventDefault();
     changeView("explore");
@@ -298,6 +334,16 @@ document.querySelector("#query").addEventListener("input", (event) => {
   state.query = event.target.value;
   render();
 });
+document.querySelector("#activity-type").addEventListener("change", (event) => {
+  state.type = event.target.value;
+  render();
+});
+document
+  .querySelector("#trips-nav")
+  .addEventListener("click", () => changeView("trips"));
+document
+  .querySelector("#open-trips")
+  .addEventListener("click", openTripsFromCity);
 document.querySelector("#sort").addEventListener("change", (event) => {
   state.sort = event.target.value;
   render();
@@ -373,6 +419,7 @@ dialog.addEventListener("close", () => {
   document.querySelector("#dialog-content").innerHTML = "";
   if (returnFocus?.isConnected) returnFocus.focus();
 });
+const tripsView = setupTrips({ card, escape, icon });
 render();
 
 function openOrganizerForm() {

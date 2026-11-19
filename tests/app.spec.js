@@ -1,40 +1,74 @@
 import { test, expect } from "@playwright/test";
 
-test("audience survey summarizes local responses, persists and deletes only survey data", async ({ page }) => {
+test("audience survey summarizes local responses, persists and deletes only survey data", async ({
+  page,
+}) => {
   await page.goto("/");
-  await page.evaluate(() => localStorage.setItem("alpas-plans", '["chicago-river"]'));
-  await page.getByRole("button", { name: "Audience insights", exact: true }).click();
+  await page.evaluate(() =>
+    localStorage.setItem("alpas-plans", '["chicago-river"]'),
+  );
+  await page
+    .getByRole("button", { name: "Audience insights", exact: true })
+    .click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("No responses yet.", { exact: false })).toBeVisible();
+  await expect(
+    dialog.getByText("No responses yet.", { exact: false }),
+  ).toBeVisible();
   await dialog.getByRole("button", { name: "Add survey response" }).click();
   await expect(dialog.getByRole("alert")).toContainText("at least one answer");
   await dialog.getByLabel("Age range").selectOption("18–24");
   await dialog.getByLabel("Life stage").selectOption("Student");
   await dialog.getByLabel("Local or visiting?").selectOption("Local resident");
   await dialog.getByRole("button", { name: "Add survey response" }).click();
-  await expect(dialog.getByRole("heading", { name: "1 survey response", exact: true })).toBeVisible();
+  await expect(
+    dialog.getByRole("heading", { name: "1 survey response", exact: true }),
+  ).toBeVisible();
   await dialog.getByLabel("Age range").selectOption("25–34");
   await dialog.getByRole("button", { name: "Add survey response" }).click();
-  await expect(dialog.getByRole("meter", { name: "18–24: 1 responses, 50%", exact: true })).toBeVisible();
+  await expect(
+    dialog.getByRole("meter", { name: "18–24: 1 responses, 50%", exact: true }),
+  ).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "Audience insights", exact: true }).click();
-  await expect(dialog.getByRole("heading", { name: "2 survey responses", exact: true })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Audience insights", exact: true })
+    .click();
+  await expect(
+    dialog.getByRole("heading", { name: "2 survey responses", exact: true }),
+  ).toBeVisible();
   await dialog.getByRole("button", { name: "Delete demo responses" }).click();
-  await expect(dialog.getByRole("heading", { name: "0 survey responses", exact: true })).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem("alpas-plans"))).toBe('["chicago-river"]');
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await expect(
+    dialog.getByRole("heading", { name: "0 survey responses", exact: true }),
+  ).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("alpas-plans"))).toBe(
+    '["chicago-river"]',
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
 
-test("audience storage failure preserves answers and does not count a response", async ({ page }) => {
+test("audience storage failure preserves answers and does not count a response", async ({
+  page,
+}) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Audience insights", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Audience insights", exact: true })
+    .click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Age range").selectOption("18–24");
-  await page.evaluate(() => { Storage.prototype.setItem = () => { throw Error("Storage full"); }; });
+  await page.evaluate(() => {
+    Storage.prototype.setItem = () => {
+      throw Error("Storage full");
+    };
+  });
   await dialog.getByRole("button", { name: "Add survey response" }).click();
   await expect(dialog.getByRole("alert")).toContainText("Could not save");
   await expect(dialog.getByLabel("Age range")).toHaveValue("18–24");
-  await expect(dialog.getByRole("heading", { name: "0 survey responses", exact: true })).toBeVisible();
+  await expect(
+    dialog.getByRole("heading", { name: "0 survey responses", exact: true }),
+  ).toBeVisible();
 });
 
 test("discovery filters, empty state, city selection and sorting", async ({
@@ -139,6 +173,9 @@ test("dialog traps keyboard focus, About explains demo, local assets load and la
     ),
   ).toBe(true);
   await page.getByRole("button", { name: "Close dialog" }).click();
+  for (const image of await page.locator("img:visible").all()) {
+    await image.scrollIntoViewIfNeeded();
+  }
   await page.locator("footer").scrollIntoViewIfNeeded();
   await page.waitForFunction(() =>
     [...document.images].every(
