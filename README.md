@@ -4,6 +4,10 @@ Customer research tools: see [the SQLite database guide](database/README.md) for
 
 Find your kind of fun, wherever you are. Alpas helps travelers and locals discover activities, compare estimated prices, follow official venue links, and keep ideas together in a saved plan.
 
+## Recorded demo
+
+[Watch the 21-second Alpas walkthrough](docs/demos/alpas-demo.mp4): browse Bakersfield activities, filter nearby theme parks by driving time, save a trip to My plans, and open the organizer event form. The recording uses the prototype’s sample listings and estimated travel times.
+
 ## Run locally
 
 Requires Node.js 20.19+ or 22.12+ (tested with Node 24).
