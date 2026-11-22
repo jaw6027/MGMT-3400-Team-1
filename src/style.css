@@ -1942,3 +1942,32 @@ body:has(dialog[open]) {
 .verification-history p { margin: 6px 0; }
 .review-body input:focus-visible,
 .review-body textarea:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+/* Business planning tools share the existing Alpas dialog and form styling. */
+footer { flex-wrap: wrap; }
+.business-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.business-tools > span { width: 100%; font-size: 11px; color: var(--muted); }
+#details-dialog:has(.calculator-body) { width: calc(100% - 40px); max-width: 1120px; }
+.calculator-body > p { line-height: 1.6; }
+.promotion-scenario { min-width: 0; margin: 24px 0; padding: 18px; border: 1px solid var(--line); border-radius: 10px; }
+.promotion-scenario legend { padding: 0 8px; font-weight: 700; }
+.promotion-inputs { grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0 0 20px; }
+.promotion-inputs label { justify-content: space-between; }
+.promotion-inputs input[aria-invalid="true"] { border-color: #9a3521; }
+.promotion-results { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.promotion-results > div { background: #e9eddf; border-radius: 7px; padding: 12px; overflow-wrap: anywhere; }
+.promotion-results dt { font-size: 12px; line-height: 1.5; }
+.promotion-results dd { margin: 10px 0 0; font-size: 20px; font-weight: 700; }
+.promotion-explanation { font-size: 13px; line-height: 1.6; margin-bottom: 0; }
+.promotion-formulas { line-height: 1.7; font-size: 13px; }
+.promotion-formulas summary { font-weight: 700; cursor: pointer; }
+@media (max-width: 800px) {
+  .promotion-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .promotion-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .promotion-inputs { grid-template-columns: minmax(0, 1fr); }
+  .promotion-scenario { padding: 12px; }
+  .promotion-results { gap: 8px; }
+  .promotion-results dd { font-size: 17px; }
+}

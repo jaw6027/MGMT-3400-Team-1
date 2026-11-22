@@ -29,6 +29,7 @@ Vite listens on port 5173 by default. The app uses vanilla JavaScript, CSS, and 
 - Organizer event form with dates, venue, category, price, description, and an HTTPS website
 - Organizer submissions enter a Pending queue; Team Review approves or rejects them before they appear in Explore
 - Duplicate/stale-date warnings, named review decisions, and persistent cancellation history (browser-only prototype)
+- Two editable sample promotion scenarios with live annual revenue, costs, profit/loss, and partner break-even calculations
 - Price sorting, activity details, and official venue website links
 - Saved plans across cities, persisted in browser local storage
 - Estimated per-person plan total and responsive layouts
@@ -85,6 +86,31 @@ This is a class demonstration of a publication workflow, not shared public publi
 
 Submitted text is rendered as text; website URLs must use HTTPS without embedded credentials. Organizer dates are real input dates, whereas curated seasonal listings retain their existing typical-season labels. The organizer form, listing filters, Nearby trips, My plans, and Audience insights remain in the same app.
 
+## Advertiser package calculator
+
+Open **Promotion calculator** in the footer's **Organizer & business** group, beside Team Review. The calculator uses the existing Alpas dialog and includes **Sample scenario A** and **Sample scenario B** for independent comparison. All starting values are **SAMPLE ASSUMPTIONS**, not established Alpas prices. All amounts are USD; promotion prices are separate from visitor admission prices, saved-plan totals, event listings, and verification history.
+
+Edit price per promoted event, events promoted per partner per year, paying partners, fixed annual costs, or variable cost per promoted event. Results update immediately, without a Calculate button. Each scenario assumes all paying partners buy its stated annual promotion volume:
+
+- Annual revenue = partners × events per partner × promotion price.
+- Annual costs = fixed annual costs + partners × events per partner × variable cost.
+- Annual profit/loss = revenue − costs.
+- Annual contribution per partner = events per partner × (promotion price − variable cost).
+- Break-even partner count = fixed annual costs ÷ positive annual contribution per partner, rounded up.
+- Additional partners needed = maximum of zero and break-even partners − current partners.
+
+### Calculator acceptance demonstration
+
+1. Open the calculator. Scenario A starts at $50 per promotion, 4 events per partner per year, 5 partners, $1,200 fixed costs, and $10 variable cost.
+2. Confirm annual revenue **$1,000**, annual costs **$1,400**, profit/loss **−$400**, break-even **8 partners**, and **3 additional partners needed**.
+3. Change paying partners to **10**. Immediately confirm revenue **$2,000**, costs **$1,600**, profit **$400**, and **0 additional partners needed**. The threshold remains 8: partner count changes progress toward the threshold, rather than changing the threshold itself. Scenario B stays unchanged.
+4. Return partners to 5. Change promotion price to **$90**: the threshold becomes **4**. Restore $50, then change frequency to **2**: the threshold becomes **15**. Restore frequency to 4, then change fixed costs to **$2,400**: the threshold becomes **15**. Restore fixed costs to $1,200, then change variable cost to **$20**: the threshold becomes **10**.
+5. Change partners to **0**: revenue is zero but fixed costs remain. Enter a blank, negative, or fractional partner count: a validation message replaces the scenario's results. Set promotion price equal to or below variable cost: the threshold and additional-partner count show **Not applicable**, with an explanation of the nonpositive contribution.
+
+Inputs accept nonnegative USD amounts in cents and nonnegative whole-number counts. Calculations use integer cents, reject unsupported numeric ranges, and never display stale figures for invalid inputs. Zero event frequency also has no partner-based threshold. With positive contribution and zero fixed costs, the break-even count is zero. With zero or negative contribution, no growth-based threshold is shown, even if zero fixed costs means the business currently has no loss; this does not imply a profitable margin.
+
+This is a planning prototype with no payments, accounts, billing, or backend. Edits remain when closing and reopening the calculator on the same page, but reset to sample assumptions on reload. It assumes identical purchasing behavior per partner and excludes taxes or other costs unless you include them in the cost inputs. It does not predict advertiser demand or change event ticket prices.
+
 ## Check and build
 
 ```sh
@@ -94,7 +120,7 @@ npm run build
 npm run preview
 ```
 
-Unit tests cover combined filters, seasonal discovery, unknown prices, sorting, saved plans, malformed storage, and organizer input validation and persistence. Playwright tests exercise discovery, seasonal and free options, official links, persistent plans, keyboard dialogs, pending submission, approval, cancellation and reload, warning resolutions, rejection, literal rendering of submitted markup, and storage failures on desktop and mobile.
+Unit tests cover combined filters, seasonal discovery, unknown prices, sorting, saved plans, malformed storage, organizer input validation and persistence, and promotion calculations and invalid-input handling. Playwright tests exercise discovery, seasonal and free options, official links, persistent plans, keyboard dialogs, pending submission, approval, cancellation and reload, warning resolutions, rejection, literal rendering of submitted markup, storage failures, independent promotion scenarios, live break-even updates, and separation from visitor prices on desktop and mobile.
 
 Browser tests default to `/usr/bin/chromium` in the cloud environment. To use another installed Chromium binary:
 

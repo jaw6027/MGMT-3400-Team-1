@@ -3,6 +3,7 @@ import { activityTypes } from "./activity-types.js";
 import { trips } from "./trips.js";
 import { setupTrips, tripDetails } from "./trips-ui.js";
 import { setupReview, verificationHistory } from "./review-ui.js";
+import { setupPromotion } from "./promotion-ui.js";
 import { setupAudience } from "./audience-ui.js";
 import {
   createSubmission,
@@ -115,7 +116,7 @@ document.querySelector("#app").innerHTML = `
     <section class="trip-invitation"><div><div class="eyebrow">WORTH A LITTLE DRIVE</div><h2>Your next adventure could be just outside the city.</h2><p>Choose a starting city, a type of fun, and how far you want to go.</p></div><button class="secondary" id="open-trips">Find a nearby trip ${icon("arrow")}</button></section>
     <section class="bottom-banner"><div class="banner-flower" aria-hidden="true">✳︎</div><div><h2>Your next good memory is out there.</h2><p>Save a few favorites. Leave a little room for the unexpected.</p></div><button id="banner-plans">Make a little plan ${icon("arrow")}</button></section>
   </main>
-  <footer><a class="brand footer-brand" href="#" aria-label="Alpas home">${logo}</a><p>A little discovery. A lot of possibility.</p><button class="text-button" id="review-nav">Team Review</button><button class="text-button" id="audience-nav">Audience insights</button><span>Made for going places. © ${new Date().getFullYear()} Alpas</span></footer>
+  <footer><a class="brand footer-brand" href="#" aria-label="Alpas home">${logo}</a><p>A little discovery. A lot of possibility.</p><div class="business-tools" role="group" aria-label="Organizer and business tools"><span>Organizer &amp; business</span><button class="text-button" id="review-nav">Team Review</button><button class="text-button" id="promotion-nav">Promotion calculator</button></div><button class="text-button" id="audience-nav">Audience insights</button><span>Made for going places. © ${new Date().getFullYear()} Alpas</span></footer>
   <dialog id="details-dialog" aria-labelledby="dialog-title"><button class="dialog-close icon-button" aria-label="Close dialog">${icon("close")}</button><div id="dialog-content"></div></dialog>
 `;
 
@@ -388,6 +389,7 @@ document
   );
 const dialog = document.querySelector("#details-dialog");
 setupAudience(openDialog);
+setupPromotion({ openDialog, escape });
 setupReview({
   openDialog, escape,
   getItems: () => activities,
