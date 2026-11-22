@@ -2,9 +2,11 @@ import "./style.css";
 import { activityTypes } from "./activity-types.js";
 import { trips } from "./trips.js";
 import { setupTrips, tripDetails } from "./trips-ui.js";
+import { setupReview, verificationHistory } from "./review-ui.js";
 import { setupAudience } from "./audience-ui.js";
 import {
   createSubmission,
+  isPublicSubmission,
   readSubmissions,
   storeSubmissions,
 } from "./submissions.js";
@@ -74,7 +76,7 @@ const state = {
   season: "any",
   type: "all",
 };
-const catalog = () => [...state.submissions, ...activities, ...trips];
+const catalog = () => [...state.submissions.filter(isPublicSubmission), ...activities, ...trips];
 let toastTimer;
 let returnFocus;
 
@@ -113,7 +115,7 @@ document.querySelector("#app").innerHTML = `
     <section class="trip-invitation"><div><div class="eyebrow">WORTH A LITTLE DRIVE</div><h2>Your next adventure could be just outside the city.</h2><p>Choose a starting city, a type of fun, and how far you want to go.</p></div><button class="secondary" id="open-trips">Find a nearby trip ${icon("arrow")}</button></section>
     <section class="bottom-banner"><div class="banner-flower" aria-hidden="true">✳︎</div><div><h2>Your next good memory is out there.</h2><p>Save a few favorites. Leave a little room for the unexpected.</p></div><button id="banner-plans">Make a little plan ${icon("arrow")}</button></section>
   </main>
-  <footer><a class="brand footer-brand" href="#" aria-label="Alpas home">${logo}</a><p>A little discovery. A lot of possibility.</p><button class="text-button" id="audience-nav">Audience insights</button><span>Made for going places. © ${new Date().getFullYear()} Alpas</span></footer>
+  <footer><a class="brand footer-brand" href="#" aria-label="Alpas home">${logo}</a><p>A little discovery. A lot of possibility.</p><button class="text-button" id="review-nav">Team Review</button><button class="text-button" id="audience-nav">Audience insights</button><span>Made for going places. © ${new Date().getFullYear()} Alpas</span></footer>
   <dialog id="details-dialog" aria-labelledby="dialog-title"><button class="dialog-close icon-button" aria-label="Close dialog">${icon("close")}</button><div id="dialog-content"></div></dialog>
 `;
 
@@ -155,7 +157,7 @@ function timingLabel(item) {
 }
 function card(item) {
   const saved = state.saved.includes(item.id);
-  return `<article class="card"><div class="card-image"><button class="image-open" data-details="${escape(item.id)}" aria-label="View details for ${escape(item.title)}"><img src="/images/${escape(item.image)}.svg" alt="" width="800" height="500" loading="lazy"></button><span class="image-tag">${escape(item.tag)}</span><button class="save-button ${saved ? "is-saved" : ""}" data-save="${escape(item.id)}" aria-pressed="${saved}" aria-label="${saved ? "Remove" : "Save"} ${escape(item.title)}${saved ? " from plans" : " to plans"}">${icon("heart")}</button></div><div class="card-body"><div class="card-category">${escape(item.source === "trip" ? item.types[0] : item.category)}<span>${icon("clock")}${escape(item.duration)}</span></div><h3><button data-details="${escape(item.id)}">${escape(item.title)}</button></h3><p class="venue">${icon("pin")}${escape(item.venue)}${item.source === "trip" ? ` · from ${escape(item.origin)}` : ""}${state.view === "plans" && item.source !== "trip" ? ` · ${escape(item.city)}` : ""}</p><p class="season-note">${icon("sun")}${escape(timingLabel(item))}</p>${item.source === "trip" ? `<p class="trip-cost-note">${escape(item.costLabel)}</p>` : ""}<div class="card-bottom"><div class="price">${item.price === null ? '<strong class="unknown-price">Check price</strong><span>with organizer</span>' : item.price === 0 ? '<strong class="free">Free</strong><span>to explore</span>' : `<strong>$${item.price}</strong><span>est. / person</span>`}</div><button class="details-button" data-details="${escape(item.id)}" aria-label="Explore ${escape(item.title)}">Explore ${icon("arrow")}</button></div></div></article>`;
+  return `<article class="card ${item.status === "cancelled" ? "cancelled-card" : ""}"><div class="card-image"><button class="image-open" data-details="${escape(item.id)}" aria-label="View details for ${escape(item.title)}"><img src="/images/${escape(item.image)}.svg" alt="" width="800" height="500" loading="lazy"></button><span class="image-tag">${escape(item.tag)}</span><button class="save-button ${saved ? "is-saved" : ""}" data-save="${escape(item.id)}" aria-pressed="${saved}" aria-label="${saved ? "Remove" : "Save"} ${escape(item.title)}${saved ? " from plans" : " to plans"}">${icon("heart")}</button></div><div class="card-body">${item.status === "cancelled" ? '<p class="event-status cancelled">Cancelled · no longer available</p>' : ""}<div class="card-category">${escape(item.source === "trip" ? item.types[0] : item.category)}<span>${icon("clock")}${escape(item.duration)}</span></div><h3><button data-details="${escape(item.id)}">${escape(item.title)}</button></h3><p class="venue">${icon("pin")}${escape(item.venue)}${item.source === "trip" ? ` · from ${escape(item.origin)}` : ""}${state.view === "plans" && item.source !== "trip" ? ` · ${escape(item.city)}` : ""}</p><p class="season-note">${icon("sun")}${escape(timingLabel(item))}</p>${item.source === "trip" ? `<p class="trip-cost-note">${escape(item.costLabel)}</p>` : ""}<div class="card-bottom"><div class="price">${item.price === null ? '<strong class="unknown-price">Check price</strong><span>with organizer</span>' : item.price === 0 ? '<strong class="free">Free</strong><span>to explore</span>' : `<strong>$${item.price}</strong><span>est. / person</span>`}</div><button class="details-button" data-details="${escape(item.id)}" aria-label="Explore ${escape(item.title)}">Explore ${icon("arrow")}</button></div></div></article>`;
 }
 function render() {
   const focusedSave = document.activeElement?.closest("[data-save]");
@@ -206,8 +208,11 @@ function render() {
       : `<div class="empty-state">${icon(planning ? "heart" : "search")}<h3>${planning ? "Good plans start with a favorite." : "A little too off the beaten path."}</h3><p>${planning ? "Tap the heart on any experience to keep it here for later." : "Try a different search or loosen your filters to find more possibilities."}</p><button class="primary" id="empty-action">${planning ? "Find an adventure" : "Clear search & filters"} ${icon("arrow")}</button>${!planning ? '<button class="text-button" id="trips-empty-link">Look beyond the city in Nearby trips</button>' : ""}</div>`;
   const summary = document.querySelector("#plan-summary");
   summary.hidden = !planning || !items.length;
-  const unknownPrices = items.filter((item) => item.price === null).length;
-  summary.innerHTML = `<span>${icon("heart")} ${items.length} ideas, endless possibilities.</span><span>${unknownPrices ? "Known estimates per person" : "Estimated total per person"} <strong>$${items.reduce((sum, a) => sum + (a.price || 0), 0)}</strong>${unknownPrices ? `<small>+ ${unknownPrices} ${unknownPrices === 1 ? "price" : "prices"} to check</small>` : ""}</span>`;
+  const availableItems = items.filter((item) => item.status !== "cancelled");
+  const unknownPrices = availableItems.filter((item) => item.price === null).length;
+  summary.innerHTML = `<span>${icon("heart")} ${items.length} ideas, endless possibilities.</span><span>${unknownPrices ? "Known estimates per person" : "Estimated total per person"} <strong>$${availableItems.reduce((sum, a) => sum + (a.price || 0), 0)}</strong>${unknownPrices ? `<small>+ ${unknownPrices} ${unknownPrices === 1 ? "price" : "prices"} to check</small>` : ""}</span>`;
+  if (availableItems.length !== items.length)
+    summary.innerHTML += '<p class="trip-plan-note">Cancelled events remain here for your reference and are excluded from the estimated total.</p>';
   if (planning && items.some((item) => item.source === "trip"))
     summary.innerHTML +=
       '<p class="trip-plan-note">Trip costs cover the listed activity only. Fuel, transport, food, parking, and lodging may be extra; vehicle-based park fees are not included in per-person totals.</p>';
@@ -270,7 +275,7 @@ function showDetails(id) {
     return;
   }
   openDialog(
-    `<img class="dialog-image" src="/images/${escape(item.image)}.svg" alt="" width="800" height="500"><div class="dialog-body"><div class="eyebrow">${escape(item.city.toUpperCase())} / ${escape(item.category.toUpperCase())}</div><h2 id="dialog-title">${escape(item.title)}</h2><p class="venue">${icon("pin")}${escape(item.venue)}</p><p class="description">${escape(item.description)}</p><p class="availability-note"><strong>When to go</strong> ${escape(timingLabel(item))}</p>${item.source === "organizer" ? `<p class="submission-note">Added by ${escape(item.organizer)} · Local browser submission, not publicly published or verified.</p>` : ""}<div class="detail-facts"><span>${icon("clock")} ${escape(item.duration)}</span><span>${icon("sun")} ${escape(item.time)}</span><strong>${escape(priceLabel(item))}</strong></div><p class="price-note">${item.source === "organizer" ? "Local organizer submission · Not verified." : "Demo listing · Prices are estimates; seasonal dates are typical, not confirmed."} Confirm admission, dates, availability, and restrictions with the venue.</p><div class="dialog-actions"><a class="primary" href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">Official website ${icon("external")}<span class="sr-only"> (opens in a new tab)</span></a><button class="secondary" id="dialog-save" data-save="${escape(item.id)}"></button></div></div>`,
+    `<img class="dialog-image" src="/images/${escape(item.image)}.svg" alt="" width="800" height="500"><div class="dialog-body"><div class="eyebrow">${escape(item.city.toUpperCase())} / ${escape(item.category.toUpperCase())}</div><h2 id="dialog-title">${escape(item.title)}</h2>${item.status === "cancelled" ? '<p class="event-status cancelled">Cancelled · no longer available</p>' : ""}<p class="venue">${icon("pin")}${escape(item.venue)}</p><p class="description">${escape(item.description)}</p><p class="availability-note"><strong>When to go</strong> ${escape(timingLabel(item))}</p>${item.source === "organizer" ? `<p class="submission-note">Added by ${escape(item.organizer)} · Reviewed class-prototype listing · this browser only.</p>` : ""}<div class="detail-facts"><span>${icon("clock")} ${escape(item.duration)}</span><span>${icon("sun")} ${escape(item.time)}</span><strong>${escape(priceLabel(item))}</strong></div><p class="price-note">${item.source === "organizer" ? "Team-reviewed browser demo · not independently verified." : "Demo listing · Prices are estimates; seasonal dates are typical, not confirmed."} Confirm admission, dates, availability, and restrictions with the venue.</p><div class="dialog-actions">${item.status === "cancelled" ? '<span class="submission-note">This event has been cancelled. Booking link unavailable.</span>' : `<a class="primary" href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">Official website ${icon("external")}<span class="sr-only"> (opens in a new tab)</span></a>`}<button class="secondary" id="dialog-save" data-save="${escape(item.id)}"></button></div>${item.source === "organizer" ? `<section class="review-history"><h3>Verification history</h3>${verificationHistory(item, escape)}</section>` : ""}</div>`,
   );
   updateDialogSave(id);
 }
@@ -378,11 +383,16 @@ document
   .querySelector("#about-nav")
   .addEventListener("click", () =>
     openDialog(
-      `<div class="about-body"><div class="eyebrow">LESS PLANNING. MORE LIVING.</div><h2 id="dialog-title">Hello, we're Alpas<span class="orange-dot">.</span></h2><p>A new city can mean a thousand possibilities—and no idea where to start. Alpas brings activities, places, estimated prices, and official websites together so making plans feels a little easier.</p><div class="about-steps"><p><strong>01</strong> Pick a city and follow your curiosity.</p><p><strong>02</strong> Find something that fits your mood and budget.</p><p><strong>03</strong> Save your favorites, then visit the official website to plan your visit.</p></div><p class="price-note">Organizers can add local demo events using Add an event. Submissions stay in this browser and are not publicly published or verified. This first version also uses a curated demo catalog for Chicago, New York, Austin, and Bakersfield. It does not provide live event inventory, ticket booking, or confirmed prices. Saved plans stay in this browser; no account is required.</p></div>`,
+      `<div class="about-body"><div class="eyebrow">LESS PLANNING. MORE LIVING.</div><h2 id="dialog-title">Hello, we're Alpas<span class="orange-dot">.</span></h2><p>A new city can mean a thousand possibilities—and no idea where to start. Alpas brings activities, places, estimated prices, and official websites together so making plans feels a little easier.</p><div class="about-steps"><p><strong>01</strong> Pick a city and follow your curiosity.</p><p><strong>02</strong> Find something that fits your mood and budget.</p><p><strong>03</strong> Save your favorites, then visit the official website to plan your visit.</p></div><p class="price-note">Organizers can submit local demo events using Add an event. Team Review approves or rejects them before they appear in Explore, and records cancellations. Listings and self-reported review identities stay in this browser; there is no shared public publishing or authentication. This first version also uses a curated demo catalog for Chicago, New York, Austin, and Bakersfield. It does not provide live event inventory, ticket booking, or confirmed prices. Saved plans stay in this browser; no account is required.</p></div>`,
     ),
   );
 const dialog = document.querySelector("#details-dialog");
 setupAudience(openDialog);
+setupReview({
+  openDialog, escape,
+  getItems: () => activities,
+  onChange: (items) => { state.submissions = items; render(); },
+});
 document
   .querySelector(".dialog-close")
   .addEventListener("click", () => dialog.close());
@@ -423,7 +433,7 @@ const tripsView = setupTrips({ card, escape, icon });
 render();
 
 function openOrganizerForm() {
-  openDialog(`<div class="organizer-body"><div class="eyebrow">BRING PEOPLE TOGETHER</div><h2 id="dialog-title">Add your event<span class="orange-dot">.</span></h2><p class="submission-note">Local demo: your event will appear in Alpas on this browser only. Public publishing, organizer verification, and ticket sales are not enabled.</p>
+  openDialog(`<div class="organizer-body"><div class="eyebrow">BRING PEOPLE TOGETHER</div><h2 id="dialog-title">Add your event<span class="orange-dot">.</span></h2><p class="submission-note">Class prototype: submissions start Pending and stay hidden from Explore until approved in Team Review. Listings and review history stay in this browser only; reviewers are not authenticated.</p>
     <form id="organizer-form" class="organizer-form">
       <label class="wide">Event title<input name="title" required maxlength="100" placeholder="e.g. Downtown acoustic night"></label>
       <label>Organizer name<input name="organizer" required maxlength="100" autocomplete="organization"></label>
@@ -441,7 +451,7 @@ function openOrganizerForm() {
       <label class="wide">Event website<input name="url" type="url" required maxlength="2000" placeholder="https://example.com/event" aria-describedby="website-hint"><span class="field-hint" id="website-hint">Use a full HTTPS link to the event or organizer.</span></label>
       <label class="wide">Description<textarea name="description" required maxlength="1500" rows="4" placeholder="What can people expect? Include start times, ticket details, and any age restrictions."></textarea></label>
       <p class="form-error wide" id="organizer-error" role="alert" hidden></p>
-      <div class="form-actions wide"><button class="secondary" type="button" id="cancel-event">Cancel</button><button class="primary" type="submit">Add to this browser ${icon("arrow")}</button></div>
+      <div class="form-actions wide"><button class="secondary" type="button" id="cancel-event">Cancel</button><button class="primary" type="submit">Submit for review ${icon("arrow")}</button></div>
     </form></div>`);
 }
 document
@@ -476,7 +486,7 @@ document
       error.hidden = false;
       return;
     }
-    const next = [submission, ...state.submissions];
+    const next = [submission, ...readSubmissions(localStorage)];
     try {
       storeSubmissions(localStorage, next);
     } catch {
@@ -496,5 +506,5 @@ document
     document
       .querySelector(".discovery-header")
       .scrollIntoView({ behavior: "smooth", block: "start" });
-    notify("Event added to this browser. It is not publicly published.");
+    notify("Submitted for review: Pending. Open Team Review to review this event.");
   });

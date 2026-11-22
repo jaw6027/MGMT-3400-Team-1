@@ -1911,3 +1911,34 @@ body:has(dialog[open]) {
     max-width: 100%;
   }
 }
+
+/* Team review uses the same dialog, forms, and palette as organizer submissions. */
+.event-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #e6ecdf;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+}
+.event-status.pending { background: #fff0cf; }
+.event-status.cancelled,
+.event-status.rejected { background: #fbe4dc; color: #8a3423; }
+.cancelled-card { border: 2px solid #c07c69; }
+.review-event { border-top: 1px solid var(--line); padding: 24px 0; overflow-wrap: anywhere; }
+.review-event h3 { margin: 0 0 12px; }
+.review-event p { line-height: 1.6; }
+.review-form { margin-top: 20px; }
+.review-warnings { background: #fff0cf; padding: 16px 16px 16px 32px; line-height: 1.6; }
+.review-resolution { min-width: 0; border: 1px solid var(--line); padding: 14px; }
+.review-resolution legend { font-weight: 700; }
+.review-resolution .review-check { display: flex; flex-direction: row; align-items: center; gap: 10px; margin-bottom: 14px; }
+.review-check input { width: auto; }
+.review-history { margin-top: 24px; overflow-wrap: anywhere; }
+.review-history summary { cursor: pointer; font-weight: 700; }
+.verification-history { padding-left: 22px; line-height: 1.6; }
+.verification-history > li { margin: 16px 0; }
+.verification-history p { margin: 6px 0; }
+.review-body input:focus-visible,
+.review-body textarea:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }

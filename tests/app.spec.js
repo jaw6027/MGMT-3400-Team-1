@@ -271,14 +271,14 @@ test("Bakersfield seasonal listings, free ideas and uncertain prices work togeth
   await expect(page.locator(".card")).not.toContainText(["Check price"]);
 });
 
-test("organizer can add a safe local event, find it after reload and save it", async ({
+test("organizer submits for review, reviewer approves and cancels, history survives reload", async ({
   page,
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Add an event +" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText(
-    "Public publishing, organizer verification, and ticket sales are not enabled",
+    "submissions start Pending and stay hidden from Explore",
   );
   const title = "Acoustic night <img src=x onerror=alert(1)>";
   await page.getByLabel("Event title", { exact: true }).fill(title);
@@ -295,17 +295,27 @@ test("organizer can add a safe local event, find it after reload and save it", a
   await page
     .getByLabel("Description", { exact: true })
     .fill("Bring a friend. Doors at 7pm. All ages.");
-  await page.getByRole("button", { name: "Add to this browser" }).click();
+  await page.getByRole("button", { name: "Submit for review" }).click();
   await expect(page.getByRole("alert")).toContainText(
     "end date must be on or after",
   );
   await page.getByLabel("End date").fill("2027-12-10");
   await page.getByLabel("Event website").fill("http://example.org/event");
-  await page.getByRole("button", { name: "Add to this browser" }).click();
+  await page.getByRole("button", { name: "Submit for review" }).click();
   await expect(page.getByRole("alert")).toContainText("Use an HTTPS");
   await page.getByLabel("Event website").fill("https://example.org/event");
-  await page.getByRole("button", { name: "Add to this browser" }).click();
+  await page.getByRole("button", { name: "Submit for review" }).click();
   await expect(dialog).not.toBeVisible();
+  await expect(page.locator(".card h3").filter({ hasText: title })).toHaveCount(0);
+  await page.getByRole("button", { name: "Team Review", exact: true }).click();
+  const review = page.locator(".review-event").filter({ hasText: title });
+  await expect(review.locator(".event-status")).toHaveText("Pending");
+  await expect(review.locator("h3 img")).toHaveCount(0);
+  await review.getByLabel("Reviewer name").fill("Member 1");
+  await review.getByLabel("Review reason", { exact: true }).fill("Confirmed event details with organizer.");
+  await review.getByRole("button", { name: "Approve", exact: true }).click();
+  await expect(review.locator(".event-status")).toHaveText("Approved");
+  await page.getByRole("button", { name: "Close dialog" }).click();
   await expect(page.locator(".card h3").first()).toHaveText(title);
   await expect(page.locator(".card").first()).toContainText("$12.5");
   await expect(page.locator(".card").first()).toContainText(
@@ -322,7 +332,35 @@ test("organizer can add a safe local event, find it after reload and save it", a
   await expect(page.locator(".card h3")).toHaveText(title);
   await page.locator(".details-button").click();
   await expect(dialog).toContainText("Neighbors & friends");
-  await expect(dialog).toContainText("not publicly published or verified");
+  await expect(dialog).toContainText("Verified by Member 1");
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  await page.getByRole("button", { name: "Team Review", exact: true }).click();
+  await review.getByLabel("Reviewer name").fill("Member 2");
+  await review.getByLabel("Review reason", { exact: true }).fill("Organizer confirmed cancellation.");
+  await review.getByRole("button", { name: "Mark Cancelled" }).click();
+  await expect(review.locator(".event-status")).toHaveText("Cancelled");
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  await expect(page.locator(".card")).toContainText("Cancelled");
+  await expect(page.locator("#plan-summary")).toContainText("excluded from the estimated total");
+  await expect(page.locator("#plan-summary strong")).toHaveText("$0");
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByLabel("Choose a city").selectOption("Bakersfield");
+  await page.getByRole("searchbox").fill("Acoustic night");
+  await expect(page.locator(".card")).toContainText("Cancelled");
+  await page.reload();
+  await page.getByRole("button", { name: /^My plans/ }).click();
+  await expect(page.locator(".card")).toContainText("Cancelled");
+  await page.locator(".details-button").click();
+  await expect(dialog).toContainText("Cancelled · no longer available");
+  await expect(dialog).toContainText("Verified by Member 2");
+  await expect(dialog).toContainText("Organizer confirmed cancellation.");
+  await expect(dialog.locator("time")).toHaveCount(2);
+  await expect(dialog.getByRole("link", { name: /Official website/ })).toHaveCount(0);
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  await page.getByRole("button", { name: "Team Review", exact: true }).click();
+  await review.getByText("Verification history", { exact: true }).click();
+  await expect(review).toContainText("Verified by Member 2");
+  await expect(review.getByRole("button", { name: "Approve", exact: true })).toHaveCount(0);
 });
 
 test("failed event storage preserves the form and does not claim success", async ({
@@ -343,7 +381,7 @@ test("failed event storage preserves the form and does not claim success", async
       throw new Error("Storage blocked");
     };
   });
-  await page.getByRole("button", { name: "Add to this browser" }).click();
+  await page.getByRole("button", { name: "Submit for review" }).click();
   await expect(page.getByRole("alert")).toContainText(
     "could not save this event",
   );
