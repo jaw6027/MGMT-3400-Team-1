@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Alpas · Find your people, celebrate community</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="engine.js"></script>
+  <script defer src="bilingual.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="Alpas · Break free · home"><span class="brandmark" aria-hidden="true">a↗</span><span class="brand-word"><span lang="tl">alpas.</span><span class="translation" lang="en">Break free</span></span></a>
+    <nav aria-label="Main navigation"><button class="nav active" data-view="discover" aria-current="page"><span class="bilingual"><span lang="tl">Tuklas</span><span class="translation" lang="en">Discovery</span></span></button><button class="nav" data-view="team"><span class="bilingual"><span lang="tl">Sama-sama</span><span class="translation" lang="en">Together</span></span><span class="nav-caption">Team dashboard</span></button></nav>
+    <span class="pill">FILIPINO ROOTS · EVERYONE WELCOME</span>
+  </header>
+  <main>
+    <div class="demo-note">A little room to explore. All events are fictional test data, dated November 2026. Times are Pacific.</div>
+    <section id="discover">
+      <div class="hero cultural-hero"><div class="eyebrow">ROOTED IN CULTURE. CONNECTED BY COMMUNITY.</div><h1><span class="bilingual hero-greeting"><span lang="tl">Tara!</span><span class="translation" lang="en">Let’s go!</span></span><br>Make room for<br>real connection<span>.</span></h1><p>Share a meal. Discover Filipino creativity. Find a little community, wherever you are.</p><span class="welcome-note">Filipino roots. An open invitation to everyone.</span><div class="hero-weave" aria-hidden="true"></div></div>
+      <section class="collection-section" aria-labelledby="collections-title"><div class="section-heading"><div><div class="eyebrow">FIND YOUR WAY TOGETHER</div><h2 id="collections-title">A gathering for every kind of day</h2></div></div><p class="field-help">Choose a collection, then narrow by date, place, or budget. Everyone is welcome to join and learn.</p><div id="collections" class="collections"></div></section>
+      <div class="discovery-layout">
+        <aside class="panel filters" aria-label="Event filters">
+          <div class="section-heading"><h2>Make it your kind of day</h2><button id="reset" class="text-button">Reset</button></div>
+          <label>Explore a place<select id="location"><option>Bakersfield</option><option>Orange County</option><option>Fresno</option><option>Visalia</option></select></label>
+          <div class="field-row"><label>Admission<select id="age"><option value="">Any restriction</option><option value="0">All ages only</option><option value="18">18+ only</option><option value="21">21+ only</option></select></label><label>Max price ($)<input id="price" type="number" min="0" step="1" placeholder="Any budget"></label></div>
+          <p class="field-help">Admission means the event’s entry restriction. Blank budget includes unknown prices.</p>
+          <label>Starts at or after<select id="time"><option value="">Any time</option><option value="9">9 AM</option><option value="12">12 PM</option><option value="17">5 PM</option><option value="19">7 PM</option><option value="21">9 PM</option></select></label>
+          <label>Your mood<select id="mood"><option value="">Any mood</option><option>Exploring</option><option>Creative</option><option>Family time</option><option>Dancing</option><option>Relaxed</option><option>Social</option></select></label>
+          <label>Your interest<select id="interest"><option value="">Any interest</option><option>Food</option><option>Arts</option><option>Family</option><option>Music</option><option>Outdoors</option><option>Community</option></select></label>
+          <div class="filter-foot">Bring your <span class="bilingual"><span lang="tl">barkada</span><span class="translation" lang="en">Circle of friends</span></span> or come meet new people.</div>
+        </aside>
+        <div class="discovery-main">
+          <section class="panel calendar-panel" aria-label="Event calendar"><div class="calendar-label bilingual"><span lang="tl">Kalendaryo</span><span class="translation" lang="en">Calendar</span></div><div class="section-heading"><h2 id="month-title"></h2><div class="calendar-controls"><button id="prev" aria-label="Previous month">←</button><button id="next" aria-label="Next month">→</button><button id="all-dates" class="text-button">Whole month</button></div></div><p class="field-help">Dots show dates with matching events. Select a date to explore.</p><div class="weekdays" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div id="calendar" class="calendar"></div></section>
+          <div class="results-heading"><div><div class="eyebrow">GO FIND YOUR PEOPLE</div><h2 id="results-title"></h2></div><span id="result-count" class="count" role="status"></span></div>
+          <div id="events" class="events"></div>
+        </div>
+      </div>
+    </section>
+    <section id="team" hidden>
+      <div class="hero compact"><div class="eyebrow">BUILD WITH THE COMMUNITY</div><h1>More connection. Shared care<span>.</span></h1><p>Track features, review cultural context, and test each path to a gathering.</p></div>
+      <div class="metrics" id="metrics"></div>
+      <div class="dashboard-grid">
+        <section class="panel"><div class="section-heading"><h2>Feature requests</h2><span class="pill">LOCAL TO THIS BROWSER</span></div><form id="request-form"><label for="request-title">New feature request</label><div class="request-add"><input id="request-title" maxlength="120" required placeholder="What would help people gather?"><select id="request-priority" aria-label="Request priority"><option>P1</option><option>P0</option><option>P2</option></select><button class="primary" type="submit">Add</button></div></form><div id="requests"></div></section>
+        <section class="panel"><h2>Demo release checklist</h2><p class="field-help">Manual checks for the class prototype. Automated results appear below.</p><div id="checklist"></div></section>
+        <section class="panel test-panel"><div class="section-heading"><div><h2>Calendar & filter test bench</h2><p class="field-help">Expected event IDs are compared with the actual search results.</p></div><button id="run-tests" class="primary">Run tests</button></div><div id="test-summary" role="status">Tests have not been run in this session.</div><div class="table-scroll"><table><thead><tr><th>Scenario</th><th>Expected IDs</th><th>Actual IDs</th><th>Result</th></tr></thead><tbody id="test-results"></tbody></table></div></section>
+      </div>
+      <p class="storage-note" id="storage-note">Requests and manual checkmarks are saved in this browser only. This prototype has no shared team account.</p>
+    </section>
+  </main>
+  <footer><span class="brand brand-word"><span lang="tl">alpas.</span><span class="translation" lang="en">Break free</span></span><span>Filipino roots. Local connections. Everyone welcome.</span><span>MGMT 3400 · Team 1</span></footer>
+  <dialog id="event-dialog"><button id="close-dialog" class="dialog-close" aria-label="Close event details">×</button><div id="event-detail"></div></dialog>
+</body>
+</html>
