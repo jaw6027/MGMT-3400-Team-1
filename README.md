@@ -131,3 +131,19 @@ CHROMIUM_PATH=/path/to/chromium npm run test:e2e
 The production build is written to `dist/` and can be deployed to a static website host. No deployment is configured by this repository.
 
 For annual-event research examples and official calendar links, see [California event references](docs/california-event-reference.md). These references are not verified upcoming events or a popularity ranking.
+
+## Member 2: Preference-Based Event Finder
+
+Explore includes a **Preference-Based Event Finder**. Use the existing city selector, **Activity type** interest selector, and **Filters → Budget per person** controls. The active-preferences summary follows manual changes, searches, categories, time, and season. Fictional demo profiles reset other filters and use the same normal filtering logic as manual discovery:
+
+| Profile | Location | Interest | Budget |
+| --- | --- | --- | --- |
+| Free Outdoor Explorer | Chicago | Outdoors | Free |
+| Music Fan | Austin | Nightlife | $20 or less |
+| Art Enthusiast | New York | Arts & culture | $40 or less |
+
+Each profile has different relevant sample results; the buttons do not supply hardcoded result lists. Matching approved organizer events remain eligible through the existing Team Review rules. Verification, cancellation behavior, saved plans, Nearby trips, Audience insights, and the Promotion calculator are preserved.
+
+Choose **Give Event Finder feedback**, select **Helpful** or **Not helpful**, optionally enter a comment (up to 1,000 characters), and save. Feedback includes the preferences and result IDs shown when the dialog opened, plus a timestamp. It persists under `alpas-finder-feedback` in this browser only, separately from plans, organizer events, and audience responses. No feedback is transmitted. Avoid personal information. Clearing site data removes feedback; the demo supports up to 1,000 responses, and storage failures retain the form for retry.
+
+`tests/finder.test.js` checks profile relevance and distinct results using the shared filter, plus feedback persistence. `tests/finder.spec.js` exercises profiles, manual preference changes, feedback, and approved organizer results in both configured desktop and mobile projects.

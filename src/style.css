@@ -1971,3 +1971,26 @@ footer { flex-wrap: wrap; }
   .promotion-results { gap: 8px; }
   .promotion-results dd { font-size: 17px; }
 }
+
+/* Event Finder extends the existing Explore controls. */
+.event-finder {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 24px 0;
+  overflow-wrap: anywhere;
+}
+.event-finder h2 { font-size: 24px; margin: 0 0 12px; }
+.event-finder p, .finder-feedback-body p { line-height: 1.6; }
+.finder-profiles { display: flex; flex-wrap: wrap; gap: 12px; }
+.finder-profiles button { white-space: normal; }
+.finder-feedback-form { display: grid; gap: 20px; }
+.finder-feedback-form fieldset { border: 1px solid var(--line); padding: 16px; }
+.finder-feedback-form fieldset label { display: block; margin: 12px 0; }
+.finder-feedback-form textarea { display: block; width: 100%; margin-top: 8px; font: inherit; padding: 12px; }
+#finder-feedback-error { color: #8a3423; }
+@media (max-width: 600px) {
+  .finder-profiles { display: grid; }
+  .finder-profiles button { width: 100%; }
+  .event-finder { padding: 16px; }
+}

@@ -1,4 +1,5 @@
 import "./style.css";
+import { setupFinder } from "./finder-ui.js";
 import { activityTypes } from "./activity-types.js";
 import { trips } from "./trips.js";
 import { setupTrips, tripDetails } from "./trips-ui.js";
@@ -105,6 +106,7 @@ document.querySelector("#app").innerHTML = `
         <button class="primary search-button" type="submit">Find my fun ${icon("arrow")}</button>
       </form>
       <div class="discovery-header"><div><div class="eyebrow" id="section-eyebrow">GO OUT. GET INTO SOMETHING.</div><h2 id="results-title">A little inspiration for <span>Chicago</span><span class="orange-dot">.</span></h2><p id="results-subtitle">Big adventures or small detours. Make the day your own.</p></div><div class="sample-label">${icon("sparkle")} Curated demo collection</div></div>
+      <section id="event-finder" class="event-finder" aria-label="Preference-Based Event Finder"></section>
       <div class="activity-types-bar"><label for="activity-type">What’s your kind of fun?</label><select id="activity-type" aria-label="Activity type"><option value="all">All types</option>${activityTypes.map((type) => `<option>${escape(type)}</option>`).join("")}</select><span>Pick a mood, then narrow it down below.</span></div>
       <div class="filters-row"><div class="category-list" role="group" aria-label="Activity categories">${categories.map((category, i) => `<button class="category ${i === 0 ? "selected" : ""}" data-category="${category}" aria-pressed="${i === 0}">${icon(categoryIcons[i])}${category}</button>`).join("")}</div><button class="filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="extra-filters">${icon("filter")} Filters <span id="filter-count"></span></button></div>
       <div class="extra-filters" id="extra-filters" hidden><label>Budget per person<select id="budget"><option value="any">Any budget</option><option value="0">Free</option><option value="20">$20 or less</option><option value="40">$40 or less</option></select></label><label>Time of day<select id="time"><option value="any">Any time</option><option>Daytime</option><option>Evening</option></select></label><label>Season<select id="season" aria-label="Season"><option value="any">Any season</option><option>Year-round</option><option>Spring</option><option>Summer</option><option>Fall</option><option>Winter</option></select></label><button class="text-button" id="reset-filters">Reset filters</button></div>
@@ -180,6 +182,7 @@ function render() {
         catalog().filter((item) => item.source !== "trip"),
         { ...state, saved: null },
       );
+  finderView.update(state, items);
   document
     .querySelectorAll(".plan-count")
     .forEach((el) => (el.textContent = state.saved.length));
@@ -388,6 +391,16 @@ document
     ),
   );
 const dialog = document.querySelector("#details-dialog");
+const finderView = setupFinder({
+  openDialog, escape,
+  applyPreferences(preferences) {
+    Object.assign(state, preferences, { view: "explore" });
+    for (const [key, selector] of Object.entries({ city: "#city", query: "#query", type: "#activity-type", budget: "#budget", time: "#time", season: "#season", sort: "#sort" }))
+      document.querySelector(selector).value = state[key];
+    document.querySelector("#filter-toggle").setAttribute("aria-expanded", "true");
+    render();
+  },
+});
 setupAudience(openDialog);
 setupPromotion({ openDialog, escape });
 setupReview({
